@@ -1,0 +1,10 @@
+.claude/
+.playwright
+.agents/
+.venv/
+__pycache__/
+*.pyc
+site/
+.DS_Store
+.vscode/
+.idea/

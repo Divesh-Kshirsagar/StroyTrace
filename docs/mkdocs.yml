@@ -1,0 +1,17 @@
+site_name: Clarity Documentation
+theme:
+  name: material
+
+docs_dir: .
+site_dir: ../site
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [../app]
+
+nav:
+  - Home: index.md
+  - Changelog (Agent Ledger): agent_ledger.md
