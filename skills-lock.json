@@ -25,6 +25,18 @@
       "skillPath": "skills/cloudflare-one/SKILL.md",
       "computedHash": "92ee52930b78562889b3bdde7c6388f1c30f5906e2c00f43032ff494e65a75c5"
     },
+    "playwright-cli": {
+      "source": "cloudflare/skills",
+      "sourceType": "github",
+      "skillPath": "skills/playwright-cli/SKILL.md",
+      "computedHash": ""
+    },
+    "shadcn": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "skillPath": "skills/shadcn/SKILL.md",
+      "computedHash": "c1a68ee06a668aced9ab2b5fbdea5f989864123794eb2e056b339a072dbb7f10"
+    },
     "turnstile-spin": {
       "source": "cloudflare/skills",
       "sourceType": "github",
@@ -48,12 +60,6 @@
       "sourceType": "github",
       "skillPath": "skills/wrangler/SKILL.md",
       "computedHash": "11edeb37eedb91deedde694b2bb1cc4ff4e8b5a8f1836c217a8c871fe39abcb5"
-    },
-    "playwright-cli": {
-      "source": "cloudflare/skills",
-      "sourceType": "github",
-      "skillPath": "skills/playwright-cli/SKILL.md",
-      "computedHash": ""
     }
   }
 }
