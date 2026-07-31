@@ -221,3 +221,13 @@
   - Modified: `apps/frontend/generated/*` - Regenerated HeyAPI client output so the Next.js frontend native requests use the slash-less paths inherently (`/api/v1/creator/events`).
 - **Decision Logic:** Instead of overriding Next.js's global `trailingSlash` functionality (which affects page routes and SEO), the simplest API contract fix is configuring the backend API to strictly drop the trailing slashes. Ninja handles this gracefully when using an empty string `""` in the decorator. Regenerating the client resolves the contract discrepancy instantly.
 - **Result Status:** The proxy no longer redirects. API calls process seamlessly with 200/401 statuses. Typecheck and build pass cleanly.
+
+## [2026-07-31 20:17] - Commit: 79d99fd - Task: Fix Editor Routing & Sync Dynamic API Bug
+
+- **Objective:** Fix the 404 occurring on `/editor/new` and resolve the sync dynamic API error in `/editor/[slug]`. Advise the user to bypass their browser cache for the redirect loop.
+- **Assumptions Declared:** Next.js matches exact path names before dynamic segments. `app/editor/page.tsx` renders `/editor`, meaning `/editor/new` attempts to match `app/editor/[slug]/page.tsx` with slug="new" resulting in a 404 from the API. Browsers aggressively cache 308/301 permanent redirects, causing old backend redirect loops to persist locally even after server fixes.
+- **Modifications Matrix:**
+  - Modified: `apps/frontend/app/editor/page.tsx` -> `apps/frontend/app/editor/new/page.tsx` - Moved the "create event" editor page to match the explicit `/editor/new` routes linked across the dashboard.
+  - Modified: `apps/frontend/app/editor/[slug]/page.tsx` - Awaited the asynchronous `params` object correctly for Next.js 16 to resolve the sync dynamic API throw.
+- **Decision Logic:** The dashboard expects `/editor/new`, so shifting the generic `/editor` index to `/editor/new` handles the creation UX perfectly while leaving `[slug]` to handle updates gracefully. 
+- **Result Status:** Build passes cleanly without any dynamic segment errors. Browser cache issues diagnosed.
