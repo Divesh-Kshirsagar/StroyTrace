@@ -13,7 +13,8 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   try {
-    const data = await appsEventsRoutersGetEvent({ slug: params.eventSlug } as any);
+    const { data } = await appsEventsRoutersGetEvent({ path: { slug: params.eventSlug } } as any);
+    if (!data) throw new Error('Not found');
     
     // In next v15 / heyapi v0.52.8 we might need to just pass `{ slug: params.eventSlug }` directly
     // Wait, let's fix it if it's incorrect. I'll change it to `{ slug: params.eventSlug }` instead of `{ query: ... }` based on my earlier fix for the edit page.
@@ -56,7 +57,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function EventPage({ params }: PageProps) {
   try {
-    const data = await appsEventsRoutersGetEvent({ slug: params.eventSlug } as any);    
+    const { data } = await appsEventsRoutersGetEvent({ path: { slug: params.eventSlug } } as any);
+    if (!data) throw new Error('Not found');    
     const jsonLd = {
       "@context": "https://schema.org",
       "@type": "NewsArticle",

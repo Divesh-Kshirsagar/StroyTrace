@@ -16,7 +16,8 @@ interface PageProps {
 
 export default async function EditEventPage({ params }: PageProps) {
   try {
-    const data = await appsEventsRoutersGetEvent({ slug: params.slug } as any);
+    const { data } = await appsEventsRoutersGetEvent({ path: { slug: params.slug } } as any);
+    if (!data) throw new Error('Not found');
     return <EventEditorPage initialEvent={data} />;
   } catch (error) {
     notFound();

@@ -6,7 +6,7 @@ import {
   appsEventsRoutersUpdateEvent,
   appsEventsRoutersUpdateNarrative,
   appsEventsRoutersCreateEvidence
-} from '@/generated/services.gen';
+} from '@/generated';
 
 interface EditorState {
   event: EventFullSchema['event'] | null;
@@ -56,8 +56,8 @@ export const EditorProvider = ({ children, initialEvent = null }: { children: Re
     setNarrative(prev => ({ ...prev, isSaving: true }));
     try {
       await appsEventsRoutersUpdateNarrative({
-        slug: event.slug,
-        requestBody: { content: narrative.content, is_published: true }
+        path: { slug: event.slug },
+          body: { content: narrative.content, is_published: true }
       });
       setNarrative(prev => ({ ...prev, isDirty: false, isSaving: false }));
     } catch (err: any) {
@@ -85,8 +85,8 @@ export const EditorProvider = ({ children, initialEvent = null }: { children: Re
     // Auto-save evidence for edit mode
     if (isEditing && event) {
       appsEventsRoutersCreateEvidence({
-        slug: event.slug,
-        requestBody: {
+        path: { slug: event.slug },
+          body: {
           media_type: optimistic.media_type,
           source_url: optimistic.source_url,
           thumbnail_url: optimistic.thumbnail_url || undefined,
@@ -101,7 +101,7 @@ export const EditorProvider = ({ children, initialEvent = null }: { children: Re
     setEvidenceQueue(prev => prev.filter(e => e.id !== id));
     if (isEditing && event) {
       try {
-        const { appsEventsRoutersDeleteEvidence } = await import('@/generated/services.gen');
+        const { appsEventsRoutersDeleteEvidence } = await import('@/generated');
         await appsEventsRoutersDeleteEvidence({ slug: event.slug, evidence_id: id } as any);
       } catch (err) {
         console.error("Failed to delete evidence", err);
@@ -113,11 +113,11 @@ export const EditorProvider = ({ children, initialEvent = null }: { children: Re
     setEvidenceQueue(newOrder);
     if (isEditing && event) {
       try {
-        const { appsEventsRoutersReorderEvidence } = await import('@/generated/services.gen');
+        const { appsEventsRoutersReorderEvidence } = await import('@/generated');
         await appsEventsRoutersReorderEvidence({
-          slug: event.slug,
-          requestBody: { evidence_ids: newOrder.map(e => e.id as any) }
-        });
+          path: { slug: event.slug },
+          body: { evidence_ids: newOrder.map(e => e.id) }
+        } as any);
       } catch (err) {
         console.error("Failed to reorder evidence", err);
       }
@@ -128,15 +128,15 @@ export const EditorProvider = ({ children, initialEvent = null }: { children: Re
     setIsCreating(true);
     setError(null);
     try {
-      const res = await appsEventsRoutersCreateEvent({
-        requestBody: {
+      const { data: res } = await appsEventsRoutersCreateEvent({
+        body: {
           title,
           summary,
           start_date: startDate,
           topic_slugs: topicSlugs
         }
-      });
-      setEvent(res);
+      } as any);
+      setEvent(res!);
     } catch (err: any) {
       setError(err?.body?.detail || "Failed to create event shell");
       throw err;
@@ -152,9 +152,9 @@ export const EditorProvider = ({ children, initialEvent = null }: { children: Re
     try {
       if (narrative.isDirty) {
         await appsEventsRoutersUpdateNarrative({
-          slug: event.slug,
-          requestBody: { content: narrative.content, is_published: true }
-        });
+          path: { slug: event.slug },
+          body: { content: narrative.content, is_published: true }
+        } as any);
         setNarrative(prev => ({ ...prev, isDirty: false }));
       }
       
@@ -162,24 +162,24 @@ export const EditorProvider = ({ children, initialEvent = null }: { children: Re
         for (const item of evidenceQueue) {
           // In a real app we'd track which items are new vs already in DB
           await appsEventsRoutersCreateEvidence({
-            slug: event.slug,
-            requestBody: {
+            path: { slug: event.slug },
+            body: {
               media_type: item.media_type,
               source_url: item.source_url,
               thumbnail_url: item.thumbnail_url || undefined,
               caption: item.caption || undefined,
               display_order: item.display_order
             }
-          });
+          } as any);
         }
         setEvidenceIsDirty(false);
       }
 
-      const res = await appsEventsRoutersUpdateEvent({
-        slug: event.slug,
-        requestBody: { status: 'published' }
-      });
-      setEvent(res);
+      const { data: res } = await appsEventsRoutersUpdateEvent({
+        path: { slug: event.slug },
+        body: { status: 'published' }
+      } as any);
+      setEvent(res || null);
       
       // Usually you'd redirect here or let the parent component handle it
     } catch (err: any) {

@@ -130,3 +130,15 @@
   - `.github/workflows/ci.yml`: Integrated `api-contract-check` to validate `openapi-ts` generated schema diffs automatically via headless backend spin-up.
 - **Decision Logic:** I injected `import '@/shared/lib/apiClient'` dynamically across the top of `app/layout.tsx` and all data-fetching `page.tsx` routes. Since Next.js spins up distinct module scope contexts for varying Server Components, placing it globally in the layout alone sometimes falls victim to module execution race conditions—explicit inclusion per page guarantees the `BASE` URL is configured before the `fetch` trigger. I replaced the provided `python -m venv` CI logic with `uv sync && uv run` to match the project's native build architecture. No manual API interfaces (`interface Event` etc.) were discovered in the codebase, meaning the Single Source of Truth architecture holds.
 - **Result Status:** Typings strictly enforce boundary constraints, the API contract is continually verified in CI, and SSR Server Components no longer throw relative URL parsing exceptions.
+
+## [2026-07-31 18:22] - Commit: 2652a1f - Task: Phase 6 (Hotfix) - Resolve hey-api v0.99.0 breaking changes
+
+- **Objective:** Fix widespread TypeScript mismatches (51+ errors) caused by `@hey-api/openapi-ts` v0.99.0 plugin migration (where parameters were heavily refactored to require path/body/query wrappers and responses were wrapped in objects).
+- **Assumptions Declared:** Global `fetch` overrides are no longer required for basic auth; the newly exported `client` can inject interceptors dynamically via `client.interceptors.request.use`.
+- **Modifications Matrix:**
+  - `apps/frontend/shared/lib/apiClient.ts`: Rewrote configuration to use the newly exported `client`. Replaced old Request header logic with native options headers.
+  - `apps/frontend/app/layout.tsx`: Explicitly added `import '@/shared/lib/apiClient'` so the global fetch configuration occurs unconditionally for all routes.
+  - `apps/frontend/app/**/*.tsx`: Updated parameter inputs from `{ requestBody: {...} }` or `{ slug: '...' }` to the grouped format `{ path: {...}, body: {...}, query: {...} }`.
+  - `apps/frontend/features/**/*.tsx`: Added destructuring assignment `const { data } = await ...` across all component API mutations to unwrap the `RequestResult`.
+- **Decision Logic:** Instead of rolling back `hey-api`, we embraced the strict structure. The new grouped payload structure natively resolves previous edge-case bugs where query params mixed dangerously with body properties. Fixing it at the framework layer meant replacing roughly 50 usages automatically via scripts before manually handling edge cases (e.g., sitemap array iterations mapping to `undefined`).
+- **Result Status:** Typecheck passes cleanly with 0 errors. Next.js builds cleanly. The proxy 404 is natively resolved due to correct layout initialization.

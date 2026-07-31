@@ -28,14 +28,15 @@ export default async function ChannelPage({ params }: PageProps) {
     const cleanHandle = params.handle.replace('%40', '').replace('@', '');
     
     // Fetch creator profile + topics
-    const profile = await appsUsersRoutersGetChannel({ handle: cleanHandle } as any);
+    const { data: profile } = await appsUsersRoutersGetChannel({ path: { handle: cleanHandle } } as any);
+    if (!profile) throw new Error('Not found');
     
-    const initialData = await appsFeedsRoutersChannelFeed({ handle: cleanHandle } as any);
+    const { data: initialData } = await appsFeedsRoutersChannelFeed({ path: { handle: cleanHandle } } as any);
     
     async function fetchNextPage(cursor: string) {
       'use server';
-      const response = await appsFeedsRoutersChannelFeed({ handle: cleanHandle, query: { cursor } } as any);
-      return response;
+      const response = await appsFeedsRoutersChannelFeed({ path: { handle: cleanHandle }, query: { cursor } } as any);
+      return response.data as any;
     }
     return (
       <main>
@@ -70,7 +71,7 @@ export default async function ChannelPage({ params }: PageProps) {
         </div>
 
         <FeedView 
-          initialData={initialData} 
+          initialData={initialData!} 
           fetchNextPage={fetchNextPage} 
           header={<h2 className="text-xl font-semibold mb-2">Published Events</h2>}
           emptyTitle={`No events from ${cleanHandle}`}

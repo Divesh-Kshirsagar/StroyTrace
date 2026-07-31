@@ -1,10 +1,11 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { TopicSchema, appsUsersRoutersMe, appsUsersRoutersSetMyTopics, appsTopicsRoutersListTopics } from '@/generated';
+import { TopicSchema, appsUsersRoutersSetMyTopics, appsTopicsRoutersListTopics } from '@/generated';
 import { Button } from '@/shared/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/shared/components/ui/dialog';
 import { Checkbox } from '@/shared/components/ui/checkbox';
 import TopicBadge from '@/shared/components/TopicBadge';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 interface TopicCurationSectionProps {
   channelHandle: string;
@@ -18,21 +19,16 @@ export default function TopicCurationSection({ channelHandle, initialTopics }: T
   const [allTopics, setAllTopics] = useState<TopicSchema[]>([]);
   const [selectedTopicSlugs, setSelectedTopicSlugs] = useState<Set<string>>(new Set(initialTopics.map(t => t.slug)));
   const [isSaving, setIsSaving] = useState(false);
+  const { creatorProfile } = useAuth();
 
   // Check if current user is owner
   useEffect(() => {
-    const checkOwnership = async () => {
-      try {
-        const user = await appsUsersRoutersMe();
-        if (user.creator_profile.handle === channelHandle) {
-          setIsOwner(true);
-        }
-      } catch (e) {
-        // Not authenticated or not owner, ignore
-      }
-    };
-    checkOwnership();
-  }, [channelHandle]);
+    if (creatorProfile && creatorProfile.handle === channelHandle) {
+      setIsOwner(true);
+    } else {
+      setIsOwner(false);
+    }
+  }, [channelHandle, creatorProfile]);
 
   const handleOpenModal = async () => {
     setShowModal(true);
@@ -41,8 +37,8 @@ export default function TopicCurationSection({ channelHandle, initialTopics }: T
     
     if (allTopics.length === 0) {
       try {
-        const fetchedTopics = await appsTopicsRoutersListTopics();
-        setAllTopics(fetchedTopics);
+        const { data: fetchedTopics } = await appsTopicsRoutersListTopics();
+        if (fetchedTopics) setAllTopics(fetchedTopics);
       } catch (e) {
         console.error("Failed to fetch topics", e);
       }
@@ -67,7 +63,7 @@ export default function TopicCurationSection({ channelHandle, initialTopics }: T
     setIsSaving(true);
     try {
       const slugsArray = Array.from(selectedTopicSlugs);
-      await appsUsersRoutersSetMyTopics({ requestBody: { topic_slugs: slugsArray } });
+      await appsUsersRoutersSetMyTopics({ body: { topic_slugs: slugsArray } } as any);
       
       // Update local state by finding the full TopicSchema objects from allTopics
       const updatedTopics = allTopics.filter(t => slugsArray.includes(t.slug));

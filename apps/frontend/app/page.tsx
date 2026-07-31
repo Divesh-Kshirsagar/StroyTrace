@@ -7,17 +7,17 @@ export const dynamic = 'force-dynamic';
 
 async function fetchNextPage(cursor: string) {
   'use server';
-  const response = await appsFeedsRoutersHomeFeed({ cursor } as any);
-  return response;
+  const response = await appsFeedsRoutersHomeFeed({ query: { cursor } } as any);
+  return response.data as any;
 }
 
 export default async function HomePage() {
-  const initialData = await appsFeedsRoutersHomeFeed({});
+  const { data: initialData } = await appsFeedsRoutersHomeFeed({});
   
   return (
     <main>
       <FeedView 
-        initialData={initialData} 
+        initialData={initialData!} 
         fetchNextPage={fetchNextPage} 
         header={<h1 className="text-3xl font-bold">Latest Investigations</h1>}
         emptyTitle="No investigations yet"

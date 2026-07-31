@@ -29,20 +29,20 @@ export default function Dashboard() {
     
     try {
       const cursor = reset ? null : nextCursor;
-      const result = await appsEventsCreatorRoutersListCreatorEvents({
+      const { data: result } = await appsEventsCreatorRoutersListCreatorEvents({ query: {
         status: statusFilter === 'all' ? undefined : statusFilter,
         cursor: cursor || undefined,
         limit: 20
-      });
+      } } as any);
       
       if (reset) {
-        setEvents(result.items);
+        if (result) setEvents(result.items);
       } else {
-        setEvents(prev => [...prev, ...result.items]);
+        if (result) setEvents(prev => [...prev, ...result.items]);
       }
       
-      setNextCursor(result.next_cursor || null);
-      setHasNext(result.has_next);
+      if (result) setNextCursor(result.next_cursor || null);
+      if (result) setHasNext(result.has_next);
     } catch (e: any) {
       setError(e);
     } finally {
@@ -53,8 +53,8 @@ export default function Dashboard() {
 
   const fetchStats = async () => {
     try {
-      const res = await appsEventsCreatorRoutersGetDraftsCount();
-      setDraftCount(res.count);
+      const { data: res } = await appsEventsCreatorRoutersGetDraftsCount();
+      if (res) setDraftCount(res.count);
     } catch (e: any) {
       setError(e);
     }

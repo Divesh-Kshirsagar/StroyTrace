@@ -1,18 +1,15 @@
-import { OpenAPI } from '../../generated';
+import { client } from '../../generated/client.gen';
 import Cookies from 'js-cookie';
 
-OpenAPI.BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+client.setConfig({
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+});
 
-OpenAPI.interceptors.request.use((req) => {
+client.interceptors.request.use((req) => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('access_token');
     if (token) {
-      if (!req.headers) req.headers = new Headers();
-      if (req.headers instanceof Headers) {
-        req.headers.set('Authorization', `Bearer ${token}`);
-      } else {
-        (req.headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
-      }
+      req.headers.set('Authorization', `Bearer ${token}`);
     }
   }
   return req;
@@ -51,7 +48,7 @@ globalThis.fetch = async (input, init) => {
     if (!isRefreshing) {
       isRefreshing = true;
       try {
-        const refreshResponse = await originalFetch(`${OpenAPI.BASE}/api/v1/auth/refresh`, {
+        const refreshResponse = await originalFetch(`${client.getConfig().baseUrl}/api/v1/auth/refresh`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refresh_token: refreshToken })
@@ -94,4 +91,4 @@ globalThis.fetch = async (input, init) => {
   return response;
 };
 
-export { OpenAPI };
+export { client };

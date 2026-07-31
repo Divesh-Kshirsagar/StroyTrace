@@ -6,7 +6,7 @@ import { Card } from '@/shared/components/ui/card';
 export const dynamic = 'force-dynamic';
 
 export default async function TopicsPage() {
-  const topics = await appsTopicsRoutersListTopics();
+  const { data: topics } = await appsTopicsRoutersListTopics();
   
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
@@ -14,7 +14,7 @@ export default async function TopicsPage() {
       <p className="text-zinc-500 mb-8">Browse investigations across all domains.</p>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {topics.map(topic => (
+        {topics?.map((topic: any) => (
           <Link key={topic.slug} href={`/topic/${topic.slug}`}>
             <Card className="p-6 hover:shadow-md transition-shadow h-full flex flex-col">
               <h3 className="font-bold text-lg mb-2">{topic.name}</h3>

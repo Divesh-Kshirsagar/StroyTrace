@@ -25,10 +25,12 @@ export default function SearchPage() {
     const fetchResults = async () => {
       setIsLoading(true);
       try {
-        const result = await appsEventsRoutersSearchEvents({ query: { q } } as any);
-        setItems(result.items);
-        setNextCursor(result.next_cursor || null);
-        setHasNext(result.has_next);
+        const { data: result } = await appsEventsRoutersSearchEvents({ query: { q } } as any);
+        if (result) {
+          setItems(result.items);
+          setNextCursor(result.next_cursor || null);
+          setHasNext(result.has_next);
+        }
       } catch (e) {
         console.error(e);
       } finally {
@@ -58,10 +60,12 @@ export default function SearchPage() {
     setIsLoadingMore(true);
     try {
       const q = searchParams.get('q') || '';
-      const result = await appsEventsRoutersSearchEvents({ query: { q, cursor: nextCursor } } as any);
-      setItems(prev => [...prev, ...result.items]);
-      setNextCursor(result.next_cursor || null);
-      setHasNext(result.has_next);
+      const { data: result } = await appsEventsRoutersSearchEvents({ query: { q, cursor: nextCursor } } as any);
+      if (result) {
+        setItems(prev => [...prev, ...result.items]);
+        setNextCursor(result.next_cursor || null);
+        setHasNext(result.has_next);
+      }
     } catch (e) {
       console.error(e);
     } finally {

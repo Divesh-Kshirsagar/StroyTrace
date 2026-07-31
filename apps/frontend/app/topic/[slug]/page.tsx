@@ -23,12 +23,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function TopicPage({ params }: PageProps) {
   try {
-    const initialData = await appsFeedsRoutersTopicFeed({ slug: params.slug } as any);
+    const { data: initialData } = await appsFeedsRoutersTopicFeed({ path: { slug: params.slug } } as any);
     
     async function fetchNextPage(cursor: string) {
       'use server';
-      const response = await appsFeedsRoutersTopicFeed({ slug: params.slug, query: { cursor } } as any);
-      return response;
+      const response = await appsFeedsRoutersTopicFeed({ path: { slug: params.slug }, query: { cursor } } as any);
+      return response.data as any;
     }
     
     const name = params.slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -36,7 +36,7 @@ export default async function TopicPage({ params }: PageProps) {
     return (
       <main>
         <FeedView 
-          initialData={initialData} 
+          initialData={initialData!} 
           fetchNextPage={fetchNextPage} 
           header={<h1 className="text-3xl font-bold mb-2">Topic: {name}</h1>}
           emptyTitle={`No events for ${name}`}

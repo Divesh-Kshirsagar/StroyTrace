@@ -7,7 +7,7 @@ import {
   appsUsersRoutersRegister, 
   appsUsersRoutersLogout, 
   appsUsersRoutersMe 
-} from '@/generated/services.gen';
+} from '@/generated';
 import type { LoginRequest, RegisterRequest, UserSchema, CreatorProfileSchema } from '@/generated/types.gen';
 
 interface AuthContextType {
@@ -33,11 +33,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const token = localStorage.getItem('access_token');
       if (!token) throw new Error("No token");
       
-      const data = await appsUsersRoutersMe();
+      const { data } = await appsUsersRoutersMe();
       if (!data) throw new Error("Failed to load user");
       
       setUser(data);
-      setCreatorProfile(data.creator_profile);
+      setCreatorProfile(data.creator_profile || null);
     } catch (err) {
       setUser(null);
       setCreatorProfile(null);
@@ -52,7 +52,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (data: LoginRequest) => {
     try {
-      const resData = await appsUsersRoutersLogin({ requestBody: data });
+      const { data: resData } = await appsUsersRoutersLogin({ body: data } as any);
+      if (!resData) throw new Error("Login failed");
       localStorage.setItem('access_token', resData.access_token);
       Cookies.set('refresh_token', resData.refresh_token, { expires: 7 });
       await loadUser();
@@ -65,7 +66,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const register = async (data: RegisterRequest) => {
     try {
-      const resData = await appsUsersRoutersRegister({ requestBody: data });
+      const { data: resData } = await appsUsersRoutersRegister({ body: data } as any);
+      if (!resData) throw new Error("Registration failed");
       localStorage.setItem('access_token', resData.access_token);
       Cookies.set('refresh_token', resData.refresh_token, { expires: 7 });
       await loadUser();
@@ -80,7 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const refreshToken = Cookies.get('refresh_token');
       if (refreshToken) {
-        await appsUsersRoutersLogout({ requestBody: { refresh_token: refreshToken } });
+        await appsUsersRoutersLogout({ body: { refresh_token: refreshToken } } as any);
       }
     } finally {
       localStorage.removeItem('access_token');

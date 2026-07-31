@@ -23,8 +23,8 @@ export default function EventRow({ event, onUpdate }: EventRowProps) {
     try {
       setIsUpdating(true);
       await appsEventsRoutersUpdateEventStatus({
-        slug: event.slug,
-        requestBody: { status: newStatus }
+        path: { slug: event.slug },
+        body: { status: newStatus }
       });
       onUpdate();
     } catch (e) {
@@ -38,7 +38,7 @@ export default function EventRow({ event, onUpdate }: EventRowProps) {
   const handleDelete = async () => {
     try {
       setIsDeleting(true);
-      await appsEventsRoutersDeleteEvent({ slug: event.slug });
+      await appsEventsRoutersDeleteEvent({ path: { slug: event.slug } } as any);
       setShowDeleteModal(false);
       onUpdate();
     } catch (e) {
