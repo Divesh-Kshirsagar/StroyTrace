@@ -100,3 +100,20 @@
   - `apps/frontend/features/channels/components/SubscribeForm.tsx`: Built the subscription UI component with `localStorage` persistence.
 - **Decision Logic:** I applied `ClientErrorBoundary` locally to the Dashboard while using `global-error.tsx` for terminal Next.js failures. Instead of generic spinners, I created exact `Skeleton` replicas of the UI to prevent layout shift (CLS). Added JSON-LD as standard script tags. Handled the rate limit exception at the Ninja `api.py` root to return 429 cleanly without breaking the OpenAPI schema.
 - **Result Status:** Next.js build passes. Skeletons render beautifully. Validation prevents malformed submissions. The MVP is ready.
+
+## [2026-07-31 16:51] - Commit: ca176ebe0a567f65c9fbfd0fd1d8b521edaad1df - Task: Phase 6 Engineering Excellence - Setup tests, CI/CD, and Docker
+
+- **Objective:** Establish the testing infrastructure, CI/CD pipelines, and Docker configuration for both frontend and backend to ensure code quality and production-readiness.
+- **Assumptions Declared:** Backend assumes a custom `User` model, hence tests must mock user instances accordingly. Frontend testing assumes the use of standard React hooks and `vitest`. We are using `pnpm` and `uv` as the package managers. SELinux requires `:Z` flags on host-mounted volumes for Fedora environments.
+- **Modifications Matrix:**
+  - `apps/backend/pytest.ini`, `apps/backend/conftest.py`: Created for backend unit/integration testing configuration.
+  - `apps/backend/apps/*/factories.py`, `apps/backend/apps/*/tests/test_models.py`, `apps/backend/apps/*/tests/test_*_api.py`: Implemented factory_boy setup, model testing, and endpoint integration testing.
+  - `apps/backend/apps/*/schemas.py`: Refactored to explicitly inherit from Django Ninja's `Schema` to resolve validation errors when mocking auth models.
+  - `apps/frontend/vitest.config.ts`, `apps/frontend/vitest.setup.ts`, `apps/frontend/package.json`: Configured vitest environment and added test scripts.
+  - `apps/frontend/playwright.config.ts`, `apps/frontend/e2e/*.spec.ts`: Set up Playwright and wrote 5 critical path end-to-end tests (Auth, Create Event, View Event, Search, Dashboard).
+  - `.pre-commit-config.yaml`: Enforced `ruff` for python and `biome` for web assets.
+  - `.github/workflows/ci.yml`: Created standard pipeline for linting, typing, unit testing, E2E testing, and codecov generation.
+  - `apps/backend/Dockerfile`, `apps/frontend/Dockerfile`, `docker-compose.dev.yml`: Established standardized containerization logic, appending the `:Z` suffix to volume definitions.
+  - `docs/todo.md`: Pruned of completed Phase 6 checklist.
+- **Decision Logic:** I applied co-location rules directly; unit and integration tests live strictly in the domain directory they test against (`apps/*/tests/`). `pydantic` issues during `AuthResponse` validation were fixed by switching `BaseModel` out for Django Ninja's native `Schema` implementation, implicitly handling ORM conversions properly. `Playwright` tests remain separate (`e2e/`) since they represent cross-feature end-to-end journeys. The CI leverages `uv` and `pnpm` for blazing fast executions.
+- **Result Status:** Test environments initialize correctly. All local unit/integration backend tests (`uv run pytest`) successfully pass. Frontend tests (`pnpm test`) are fully configured and passing. Docker containers build natively and pre-commit checks run cleanly.

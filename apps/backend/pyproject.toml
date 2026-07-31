@@ -14,3 +14,14 @@ dependencies = [
     "pytest-playwright>=0.8.0",
     "ruff>=0.16.1",
 ]
+
+[dependency-groups]
+dev = [
+    "django-stubs>=6.0.7",
+    "djangorestframework-stubs>=3.17.1",
+    "factory-boy>=3.3.3",
+    "mypy>=2.3.0",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "pytest-django>=4.12.0",
+]

@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          version: "latest"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: cd apps/backend && uv sync
+      - name: Run Ruff Linter
+        run: cd apps/backend && uv run ruff check .
+      - name: Run Pytest with Coverage
+        run: cd apps/backend && uv run pytest --cov=apps --cov-report=xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./apps/backend/coverage.xml
+          flags: backend
+
+  frontend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - name: Install dependencies
+        run: cd apps/frontend && pnpm install
+      - name: Run Biome Check
+        run: cd apps/frontend && pnpm dlx @biomejs/biome ci .
+      - name: Run Unit Tests
+        run: cd apps/frontend && pnpm test
+      - name: Run E2E Tests
+        run: |
+          cd apps/frontend
+          pnpm dlx playwright install --with-deps
+          pnpm dlx playwright test

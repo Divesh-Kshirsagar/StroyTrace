@@ -1,10 +1,11 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import EmailStr, Field
+from ninja import Schema
 from typing import Optional
 import uuid
 from datetime import datetime
 from apps.topics.schemas import TopicSchema
 
-class CreatorProfileSchema(BaseModel):
+class CreatorProfileSchema(Schema):
     id: uuid.UUID
     handle: str
     display_name: str
@@ -15,39 +16,39 @@ class CreatorProfileSchema(BaseModel):
     is_verified: bool
     topics: list[TopicSchema] = []
 
-class UserSchema(BaseModel):
+class UserSchema(Schema):
     id: uuid.UUID
     email: EmailStr
     is_active: bool
     date_joined: datetime
     creator_profile: CreatorProfileSchema
 
-class RegisterRequest(BaseModel):
+class RegisterRequest(Schema):
     email: EmailStr
     password: str = Field(..., min_length=8)
     handle: str = Field(..., min_length=3, max_length=30, pattern=r"^[a-z0-9_]+$")
     display_name: str = Field(..., min_length=1, max_length=100)
 
-class LoginRequest(BaseModel):
+class LoginRequest(Schema):
     email: EmailStr
     password: str
 
-class AuthResponse(BaseModel):
+class AuthResponse(Schema):
     user: UserSchema
     access_token: str
     refresh_token: str
 
-class LogoutRequest(BaseModel):
+class LogoutRequest(Schema):
     refresh_token: str
 
-class RefreshRequest(BaseModel):
+class RefreshRequest(Schema):
     refresh_token: str
 
-class RefreshResponse(BaseModel):
+class RefreshResponse(Schema):
     access_token: str
 
-class MessageResponse(BaseModel):
+class MessageResponse(Schema):
     message: str
 
-class TopicCurationSchema(BaseModel):
+class TopicCurationSchema(Schema):
     topic_slugs: list[str]
