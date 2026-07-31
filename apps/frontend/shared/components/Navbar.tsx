@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export default function Navbar() {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout, isLoading } = useAuth();
 
   return (
     <nav className="border-b border-zinc-200 dark:border-zinc-800 px-4 py-3 bg-white dark:bg-zinc-950 flex items-center justify-between sticky top-0 z-50">
@@ -26,7 +26,12 @@ export default function Navbar() {
       </div>
       
       <div className="flex items-center gap-4 text-sm font-medium">
-        {isAuthenticated && user ? (
+        {isLoading ? (
+          <div className="flex gap-4 items-center">
+            <div className="h-8 w-16 bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-md"></div>
+            <div className="h-8 w-20 bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-md"></div>
+          </div>
+        ) : isAuthenticated && user ? (
           <>
             <Link href="/dashboard" className="text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-white">
               Dashboard

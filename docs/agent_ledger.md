@@ -169,3 +169,14 @@
   - Modified `apps/frontend/app/topic/[slug]/page.tsx`
 - **Decision Logic:** Separated the `notFound()` call from the internal `catch (error)` bounds. By fetching data and assigning it to mutable outer variables, we can trigger `notFound()` gracefully outside the try-catch barrier. This ensures Next.js successfully resolves its performance tracking and handles the 404 without crashing Turbopack metrics.
 - **Result Status:** Build pass, Typecheck pass.
+
+## [2026-07-31 18:55] - Commit: 30de49d7461bd80ed48e9162d9bcbb1c70a87955 - Task: Refactor search polling & fix auth UI flash
+
+- **Objective:** Prevent infinite loop of API hits in Search page, remove auth layout flash on initial load, and silence noisy mock analytics.
+- **Assumptions Declared:** Assuming URL `history.replaceState` bypasses Next.js shallow routing loop side-effects, decoupling the view from router-bound state updates.
+- **Modifications Matrix:**
+  - Modified `apps/frontend/app/search/page.tsx`
+  - Modified `apps/frontend/shared/components/Navbar.tsx`
+  - Modified `apps/frontend/shared/components/Analytics.tsx`
+- **Decision Logic:** The previous search page mapped an effect to `searchParams`, but modified them concurrently via `router.push`, causing cyclical loops of network fetching and Next.js soft-navigation. Decoupled by maintaining an isolated `debouncedQuery` React state, fetching independently of the router, and quietly pushing to the URL using native HTML5 `history.replaceState`. Fixed Navbar by integrating `isLoading` skeletons rather than falling back to unauthenticated `Login` defaults. Silenced analytics by removing `console.log`.
+- **Result Status:** Build pass, Typecheck pass.

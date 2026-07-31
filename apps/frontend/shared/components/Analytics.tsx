@@ -7,8 +7,8 @@ export default function Analytics() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const url = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
-    console.log(`[MOCK ANALYTICS] Page view: ${url}`);
+    // const url = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
+    // In the future, send 'url' to Plausible, PostHog, or Google Analytics here
   }, [pathname, searchParams]);
 
   return null;
