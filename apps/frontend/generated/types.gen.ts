@@ -82,7 +82,7 @@ export type TopicSchema = {
     /**
      * Description
      */
-    description: string;
+    description?: string | null;
 };
 
 /**
@@ -712,7 +712,7 @@ export type AppsTopicsRoutersListTopicsData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/v1/topics/';
+    url: '/api/v1/topics';
 };
 
 export type AppsTopicsRoutersListTopicsResponses = {
@@ -730,7 +730,7 @@ export type AppsEventsRoutersCreateEventData = {
     body: EventCreateSchema;
     path?: never;
     query?: never;
-    url: '/api/v1/events/';
+    url: '/api/v1/events';
 };
 
 export type AppsEventsRoutersCreateEventResponses = {
@@ -1037,7 +1037,7 @@ export type AppsEventsCreatorRoutersListCreatorEventsData = {
          */
         limit?: number;
     };
-    url: '/api/v1/creator/events/';
+    url: '/api/v1/creator/events';
 };
 
 export type AppsEventsCreatorRoutersListCreatorEventsResponses = {

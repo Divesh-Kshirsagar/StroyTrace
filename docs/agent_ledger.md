@@ -210,3 +210,14 @@
   - Modified: `apps/frontend/features/dashboard/components/Dashboard.tsx` - Rewrote to decouple `fetchEvents` from React hook dependencies (using `useRef` for cursors), and prevented API errors from bubbling up to React's Error Boundary to avoid remount loops.
 - **Decision Logic:** Unifying the API proxy strategy ensures all browser API calls hit `/api/v1/*` avoiding CORS and resolving the proxy redirects, while keeping server-side fetching strictly via localhost:8000. `js-cookie` defaults to scoping to the current path (`/login`), so explicitly adding `path: '/'` is mandatory for middleware visibility on other routes.
 - **Result Status:** Compile state passes. Frontend typecheck and build pass. Django admin and dashboard work correctly without infinite loops.
+
+## [2026-07-31 20:05] - Commit: 4c4bb16 - Task: Fix Trailing Slash Redirect Loop
+
+- **Objective:** Fix the `ERR_TOO_MANY_REDIRECTS` loop occurring strictly on empty path endpoint hits via the Next.js proxy rewrite.
+- **Assumptions Declared:** Next.js strips trailing slashes with a 308 redirect, while Django forces appending them with a 301 redirect. Passing requests back and forth triggers an infinite loop.
+- **Modifications Matrix:**
+  - Modified: `apps/backend/config/settings.py` - Explicitly disabled `APPEND_SLASH` to prevent Django's 301 redirect mechanism.
+  - Modified: `apps/backend/apps/events/routers.py`, `apps/backend/apps/topics/routers.py`, `apps/backend/apps/events/creator_routers.py` - Switched all root router definitions from `@router.get("/")` to `@router.get("")` so Django Ninja strictly maps to slash-less endpoint URLs in the OpenAPI JSON output.
+  - Modified: `apps/frontend/generated/*` - Regenerated HeyAPI client output so the Next.js frontend native requests use the slash-less paths inherently (`/api/v1/creator/events`).
+- **Decision Logic:** Instead of overriding Next.js's global `trailingSlash` functionality (which affects page routes and SEO), the simplest API contract fix is configuring the backend API to strictly drop the trailing slashes. Ninja handles this gracefully when using an empty string `""` in the decorator. Regenerating the client resolves the contract discrepancy instantly.
+- **Result Status:** The proxy no longer redirects. API calls process seamlessly with 200/401 statuses. Typecheck and build pass cleanly.

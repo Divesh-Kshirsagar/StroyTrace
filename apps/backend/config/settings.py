@@ -46,6 +46,9 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 _allowed_raw = config('ALLOWED_HOSTS', default='localhost,127.0.0.1')
 ALLOWED_HOSTS = [h.strip() for h in _allowed_raw.split(',') if h.strip()]
 
+# Prevent Django from appending slashes and causing 301 loops with Next.js
+APPEND_SLASH = False
+
 # ---------------------------------------------------------------------------
 # JWT settings (used in users/routers.py)
 # ---------------------------------------------------------------------------

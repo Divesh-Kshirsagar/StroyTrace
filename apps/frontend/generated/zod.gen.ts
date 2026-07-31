@@ -9,7 +9,7 @@ export const zTopicSchema = z.object({
     id: z.uuid(),
     name: z.string(),
     slug: z.string(),
-    description: z.string()
+    description: z.string().nullish()
 });
 
 /**

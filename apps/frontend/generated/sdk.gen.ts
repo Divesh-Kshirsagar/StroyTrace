@@ -58,7 +58,11 @@ export const appsUsersRoutersRefresh = <ThrowOnError extends boolean = false>(op
  * Logout
  */
 export const appsUsersRoutersLogout = <ThrowOnError extends boolean = false>(options: Options<AppsUsersRoutersLogoutData, ThrowOnError>): RequestResult<AppsUsersRoutersLogoutResponses, unknown, ThrowOnError> => (options.client ?? client).post<AppsUsersRoutersLogoutResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{
+            key: 'AuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
     url: '/api/v1/auth/logout',
     ...options,
     headers: {
@@ -71,7 +75,11 @@ export const appsUsersRoutersLogout = <ThrowOnError extends boolean = false>(opt
  * Me
  */
 export const appsUsersRoutersMe = <ThrowOnError extends boolean = false>(options?: Options<AppsUsersRoutersMeData, ThrowOnError>): RequestResult<AppsUsersRoutersMeResponses, unknown, ThrowOnError> => (options?.client ?? client).get<AppsUsersRoutersMeResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{
+            key: 'AuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
     url: '/api/v1/auth/me',
     ...options
 });
@@ -80,7 +88,11 @@ export const appsUsersRoutersMe = <ThrowOnError extends boolean = false>(options
  * My Channel
  */
 export const appsUsersRoutersMyChannel = <ThrowOnError extends boolean = false>(options?: Options<AppsUsersRoutersMyChannelData, ThrowOnError>): RequestResult<AppsUsersRoutersMyChannelResponses, unknown, ThrowOnError> => (options?.client ?? client).get<AppsUsersRoutersMyChannelResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{
+            key: 'AuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
     url: '/api/v1/channels/me',
     ...options
 });
@@ -94,7 +106,11 @@ export const appsUsersRoutersGetChannel = <ThrowOnError extends boolean = false>
  * Get My Topics
  */
 export const appsUsersRoutersGetMyTopics = <ThrowOnError extends boolean = false>(options?: Options<AppsUsersRoutersGetMyTopicsData, ThrowOnError>): RequestResult<AppsUsersRoutersGetMyTopicsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<AppsUsersRoutersGetMyTopicsResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{
+            key: 'AuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
     url: '/api/v1/channels/me/topics',
     ...options
 });
@@ -103,7 +119,11 @@ export const appsUsersRoutersGetMyTopics = <ThrowOnError extends boolean = false
  * Set My Topics
  */
 export const appsUsersRoutersSetMyTopics = <ThrowOnError extends boolean = false>(options: Options<AppsUsersRoutersSetMyTopicsData, ThrowOnError>): RequestResult<AppsUsersRoutersSetMyTopicsResponses, unknown, ThrowOnError> => (options.client ?? client).post<AppsUsersRoutersSetMyTopicsResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{
+            key: 'AuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
     url: '/api/v1/channels/me/topics',
     ...options,
     headers: {
@@ -115,14 +135,18 @@ export const appsUsersRoutersSetMyTopics = <ThrowOnError extends boolean = false
 /**
  * List Topics
  */
-export const appsTopicsRoutersListTopics = <ThrowOnError extends boolean = false>(options?: Options<AppsTopicsRoutersListTopicsData, ThrowOnError>): RequestResult<AppsTopicsRoutersListTopicsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<AppsTopicsRoutersListTopicsResponses, unknown, ThrowOnError>({ url: '/api/v1/topics/', ...options });
+export const appsTopicsRoutersListTopics = <ThrowOnError extends boolean = false>(options?: Options<AppsTopicsRoutersListTopicsData, ThrowOnError>): RequestResult<AppsTopicsRoutersListTopicsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<AppsTopicsRoutersListTopicsResponses, unknown, ThrowOnError>({ url: '/api/v1/topics', ...options });
 
 /**
  * Create Event
  */
 export const appsEventsRoutersCreateEvent = <ThrowOnError extends boolean = false>(options: Options<AppsEventsRoutersCreateEventData, ThrowOnError>): RequestResult<AppsEventsRoutersCreateEventResponses, unknown, ThrowOnError> => (options.client ?? client).post<AppsEventsRoutersCreateEventResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/events/',
+    security: [{
+            key: 'AuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/api/v1/events',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -139,7 +163,11 @@ export const appsEventsRoutersSearchEvents = <ThrowOnError extends boolean = fal
  * Delete Event
  */
 export const appsEventsRoutersDeleteEvent = <ThrowOnError extends boolean = false>(options: Options<AppsEventsRoutersDeleteEventData, ThrowOnError>): RequestResult<AppsEventsRoutersDeleteEventResponses, unknown, ThrowOnError> => (options.client ?? client).delete<AppsEventsRoutersDeleteEventResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{
+            key: 'AuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
     url: '/api/v1/events/{slug}',
     ...options
 });
@@ -147,13 +175,25 @@ export const appsEventsRoutersDeleteEvent = <ThrowOnError extends boolean = fals
 /**
  * Get Event
  */
-export const appsEventsRoutersGetEvent = <ThrowOnError extends boolean = false>(options: Options<AppsEventsRoutersGetEventData, ThrowOnError>): RequestResult<AppsEventsRoutersGetEventResponses, unknown, ThrowOnError> => (options.client ?? client).get<AppsEventsRoutersGetEventResponses, unknown, ThrowOnError>({ url: '/api/v1/events/{slug}', ...options });
+export const appsEventsRoutersGetEvent = <ThrowOnError extends boolean = false>(options: Options<AppsEventsRoutersGetEventData, ThrowOnError>): RequestResult<AppsEventsRoutersGetEventResponses, unknown, ThrowOnError> => (options.client ?? client).get<AppsEventsRoutersGetEventResponses, unknown, ThrowOnError>({
+    security: [{
+            key: 'OptionalAuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/api/v1/events/{slug}',
+    ...options
+});
 
 /**
  * Update Event
  */
 export const appsEventsRoutersUpdateEvent = <ThrowOnError extends boolean = false>(options: Options<AppsEventsRoutersUpdateEventData, ThrowOnError>): RequestResult<AppsEventsRoutersUpdateEventResponses, unknown, ThrowOnError> => (options.client ?? client).put<AppsEventsRoutersUpdateEventResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{
+            key: 'AuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
     url: '/api/v1/events/{slug}',
     ...options,
     headers: {
@@ -171,7 +211,11 @@ export const appsEventsRoutersGetNarrative = <ThrowOnError extends boolean = fal
  * Update Narrative
  */
 export const appsEventsRoutersUpdateNarrative = <ThrowOnError extends boolean = false>(options: Options<AppsEventsRoutersUpdateNarrativeData, ThrowOnError>): RequestResult<AppsEventsRoutersUpdateNarrativeResponses, unknown, ThrowOnError> => (options.client ?? client).post<AppsEventsRoutersUpdateNarrativeResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{
+            key: 'AuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
     url: '/api/v1/events/{slug}/narrative',
     ...options,
     headers: {
@@ -189,7 +233,11 @@ export const appsEventsRoutersListEvidence = <ThrowOnError extends boolean = fal
  * Create Evidence
  */
 export const appsEventsRoutersCreateEvidence = <ThrowOnError extends boolean = false>(options: Options<AppsEventsRoutersCreateEvidenceData, ThrowOnError>): RequestResult<AppsEventsRoutersCreateEvidenceResponses, unknown, ThrowOnError> => (options.client ?? client).post<AppsEventsRoutersCreateEvidenceResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{
+            key: 'AuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
     url: '/api/v1/events/{slug}/evidence',
     ...options,
     headers: {
@@ -202,7 +250,11 @@ export const appsEventsRoutersCreateEvidence = <ThrowOnError extends boolean = f
  * Delete Evidence
  */
 export const appsEventsRoutersDeleteEvidence = <ThrowOnError extends boolean = false>(options: Options<AppsEventsRoutersDeleteEvidenceData, ThrowOnError>): RequestResult<AppsEventsRoutersDeleteEvidenceResponses, unknown, ThrowOnError> => (options.client ?? client).delete<AppsEventsRoutersDeleteEvidenceResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{
+            key: 'AuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
     url: '/api/v1/events/{slug}/evidence/{evidence_id}',
     ...options
 });
@@ -211,7 +263,11 @@ export const appsEventsRoutersDeleteEvidence = <ThrowOnError extends boolean = f
  * Update Evidence
  */
 export const appsEventsRoutersUpdateEvidence = <ThrowOnError extends boolean = false>(options: Options<AppsEventsRoutersUpdateEvidenceData, ThrowOnError>): RequestResult<AppsEventsRoutersUpdateEvidenceResponses, unknown, ThrowOnError> => (options.client ?? client).put<AppsEventsRoutersUpdateEvidenceResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{
+            key: 'AuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
     url: '/api/v1/events/{slug}/evidence/{evidence_id}',
     ...options,
     headers: {
@@ -224,7 +280,11 @@ export const appsEventsRoutersUpdateEvidence = <ThrowOnError extends boolean = f
  * Update Event Status
  */
 export const appsEventsRoutersUpdateEventStatus = <ThrowOnError extends boolean = false>(options: Options<AppsEventsRoutersUpdateEventStatusData, ThrowOnError>): RequestResult<AppsEventsRoutersUpdateEventStatusResponses, unknown, ThrowOnError> => (options.client ?? client).put<AppsEventsRoutersUpdateEventStatusResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{
+            key: 'AuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
     url: '/api/v1/events/{slug}/status',
     ...options,
     headers: {
@@ -237,7 +297,11 @@ export const appsEventsRoutersUpdateEventStatus = <ThrowOnError extends boolean 
  * Reorder Evidence
  */
 export const appsEventsRoutersReorderEvidence = <ThrowOnError extends boolean = false>(options: Options<AppsEventsRoutersReorderEvidenceData, ThrowOnError>): RequestResult<AppsEventsRoutersReorderEvidenceResponses, unknown, ThrowOnError> => (options.client ?? client).put<AppsEventsRoutersReorderEvidenceResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{
+            key: 'AuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
     url: '/api/v1/events/{slug}/evidence/reorder',
     ...options,
     headers: {
@@ -250,8 +314,12 @@ export const appsEventsRoutersReorderEvidence = <ThrowOnError extends boolean = 
  * List Creator Events
  */
 export const appsEventsCreatorRoutersListCreatorEvents = <ThrowOnError extends boolean = false>(options?: Options<AppsEventsCreatorRoutersListCreatorEventsData, ThrowOnError>): RequestResult<AppsEventsCreatorRoutersListCreatorEventsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<AppsEventsCreatorRoutersListCreatorEventsResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/creator/events/',
+    security: [{
+            key: 'AuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/api/v1/creator/events',
     ...options
 });
 
@@ -259,7 +327,11 @@ export const appsEventsCreatorRoutersListCreatorEvents = <ThrowOnError extends b
  * Get Drafts Count
  */
 export const appsEventsCreatorRoutersGetDraftsCount = <ThrowOnError extends boolean = false>(options?: Options<AppsEventsCreatorRoutersGetDraftsCountData, ThrowOnError>): RequestResult<AppsEventsCreatorRoutersGetDraftsCountResponses, unknown, ThrowOnError> => (options?.client ?? client).get<AppsEventsCreatorRoutersGetDraftsCountResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
+    security: [{
+            key: 'AuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
     url: '/api/v1/creator/events/drafts/count',
     ...options
 });

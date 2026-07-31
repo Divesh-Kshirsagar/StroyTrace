@@ -37,7 +37,7 @@ def require_lead_investigator(request, event):
     if event.lead_investigator != request.auth:
         raise HttpError(403, "Only the lead investigator can modify this event")
 
-@events_router.post("/", response=EventSchema, auth=_auth)
+@events_router.post("", response=EventSchema, auth=_auth)
 def create_event(request, data: EventCreateSchema):
     with transaction.atomic():
         base_slug = slugify(data.title)

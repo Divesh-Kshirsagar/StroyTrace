@@ -11,7 +11,7 @@ creator_events_router = Router(tags=["creator-events"])
 class DraftsCountSchema(Schema):
     count: int
 
-@creator_events_router.get("/", response=PaginatedEventSummarySchema)
+@creator_events_router.get("", response=PaginatedEventSummarySchema)
 def list_creator_events(request, status: Optional[str] = None, cursor: Optional[str] = None, limit: int = 20):
     events = Event.objects.filter(lead_investigator=request.auth).select_related(
         'lead_investigator', 'lead_investigator__creator_profile'
