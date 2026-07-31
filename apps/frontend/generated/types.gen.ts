@@ -62,6 +62,12 @@ export type TopicSchema = {
     description: string;
 };
 
+export type CreatorSummarySchema = {
+    handle: string;
+    display_name: string;
+    avatar_url?: string | null;
+};
+
 export type EventSchema = {
     id: string;
     title: string;
@@ -72,6 +78,7 @@ export type EventSchema = {
     status: string;
     created_at: string;
     updated_at: string;
+    lead_investigator: CreatorSummarySchema;
     topics: Array<TopicSchema>;
 };
 
@@ -81,6 +88,32 @@ export type EventCreateSchema = {
     start_date: string;
     end_date?: string | null;
     topic_slugs?: Array<(string)>;
+};
+
+export type EventSummarySchema = {
+    id: string;
+    slug: string;
+    title: string;
+    summary?: string | null;
+    start_date: string;
+    status: string;
+    lead_investigator: CreatorSummarySchema;
+    primary_topic?: TopicSummarySchema | null;
+    evidence_count: number;
+    primary_thumbnail?: string | null;
+    created_at: string;
+};
+
+export type PaginatedEventSummarySchema = {
+    items: Array<EventSummarySchema>;
+    next_cursor?: string | null;
+    previous_cursor?: string | null;
+    has_next: boolean;
+};
+
+export type TopicSummarySchema = {
+    slug: string;
+    name: string;
 };
 
 export type EventFullSchema = {
@@ -174,10 +207,14 @@ export type AppsEventsRoutersCreateEventData = {
 export type AppsEventsRoutersCreateEventResponse = EventSchema;
 
 export type AppsEventsRoutersSearchEventsData = {
+    cursor?: string | null;
+    limit?: number;
     q?: string;
+    status?: string;
+    topic?: string;
 };
 
-export type AppsEventsRoutersSearchEventsResponse = Array<EventSchema>;
+export type AppsEventsRoutersSearchEventsResponse = PaginatedEventSummarySchema;
 
 export type AppsEventsRoutersGetEventData = {
     slug: string;
@@ -239,4 +276,25 @@ export type AppsEventsRoutersDeleteEvidenceData = {
 
 export type AppsEventsRoutersDeleteEvidenceResponse = MessageSchema;
 
-export type AppsFeedsRoutersHomeFeedResponse = unknown;
+export type AppsFeedsRoutersHomeFeedData = {
+    cursor?: string | null;
+    limit?: number;
+};
+
+export type AppsFeedsRoutersHomeFeedResponse = PaginatedEventSummarySchema;
+
+export type AppsFeedsRoutersTopicFeedData = {
+    cursor?: string | null;
+    limit?: number;
+    slug: string;
+};
+
+export type AppsFeedsRoutersTopicFeedResponse = PaginatedEventSummarySchema;
+
+export type AppsFeedsRoutersChannelFeedData = {
+    cursor?: string | null;
+    handle: string;
+    limit?: number;
+};
+
+export type AppsFeedsRoutersChannelFeedResponse = PaginatedEventSummarySchema;

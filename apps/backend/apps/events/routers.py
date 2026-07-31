@@ -54,12 +54,25 @@ def create_event(request, data: EventCreateSchema):
             
         return event
 
-@events_router.get("/search", response=List[EventSchema], auth=None)
-def search_events(request, q: str = ""):
-    events = Event.objects.filter(status='published')
+from typing import Optional
+from apps.feeds.schemas import PaginatedEventSummarySchema
+from core.pagination import paginate_queryset
+
+@events_router.get("/search", response=PaginatedEventSummarySchema, auth=None)
+def search_events(request, q: str = "", topic: str = "", status: str = "published", cursor: Optional[str] = None, limit: int = 20):
+    events = Event.objects.filter(status=status).select_related(
+        'lead_investigator', 'lead_investigator__creator_profile'
+    ).prefetch_related('topics', 'evidence_set')
+    
     if q:
-        events = events.filter(Q(title__icontains=q) | Q(summary__icontains=q))
-    return events.distinct()
+        terms = q.split()
+        for term in terms:
+            events = events.filter(Q(title__icontains=term) | Q(summary__icontains=term) | Q(narrative__content__icontains=term))
+            
+    if topic:
+        events = events.filter(topics__slug=topic)
+        
+    return paginate_queryset(events, cursor, limit)
 
 @events_router.get("/{slug}", response=EventFullSchema, auth=None)
 def get_event(request, slug: str):

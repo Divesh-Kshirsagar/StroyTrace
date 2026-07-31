@@ -233,6 +233,33 @@ export const $TopicSchema = {
     type: 'object'
 } as const;
 
+export const $CreatorSummarySchema = {
+    properties: {
+        handle: {
+            title: 'Handle',
+            type: 'string'
+        },
+        display_name: {
+            title: 'Display Name',
+            type: 'string'
+        },
+        avatar_url: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Avatar Url'
+        }
+    },
+    required: ['handle', 'display_name'],
+    title: 'CreatorSummarySchema',
+    type: 'object'
+} as const;
+
 export const $EventSchema = {
     properties: {
         id: {
@@ -290,6 +317,9 @@ export const $EventSchema = {
             title: 'Updated At',
             type: 'string'
         },
+        lead_investigator: {
+            '$ref': '#/components/schemas/CreatorSummarySchema'
+        },
         topics: {
             items: {
                 '$ref': '#/components/schemas/TopicSchema'
@@ -298,7 +328,7 @@ export const $EventSchema = {
             type: 'array'
         }
     },
-    required: ['id', 'title', 'slug', 'start_date', 'status', 'created_at', 'updated_at', 'topics'],
+    required: ['id', 'title', 'slug', 'start_date', 'status', 'created_at', 'updated_at', 'lead_investigator', 'topics'],
     title: 'EventSchema',
     type: 'object'
 } as const;
@@ -348,6 +378,137 @@ export const $EventCreateSchema = {
     },
     required: ['title', 'start_date'],
     title: 'EventCreateSchema',
+    type: 'object'
+} as const;
+
+export const $EventSummarySchema = {
+    properties: {
+        id: {
+            format: 'uuid',
+            title: 'Id',
+            type: 'string'
+        },
+        slug: {
+            title: 'Slug',
+            type: 'string'
+        },
+        title: {
+            title: 'Title',
+            type: 'string'
+        },
+        summary: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Summary'
+        },
+        start_date: {
+            format: 'date',
+            title: 'Start Date',
+            type: 'string'
+        },
+        status: {
+            title: 'Status',
+            type: 'string'
+        },
+        lead_investigator: {
+            '$ref': '#/components/schemas/CreatorSummarySchema'
+        },
+        primary_topic: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/TopicSummarySchema'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        evidence_count: {
+            title: 'Evidence Count',
+            type: 'integer'
+        },
+        primary_thumbnail: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Primary Thumbnail'
+        },
+        created_at: {
+            format: 'date-time',
+            title: 'Created At',
+            type: 'string'
+        }
+    },
+    required: ['id', 'slug', 'title', 'start_date', 'status', 'lead_investigator', 'evidence_count', 'created_at'],
+    title: 'EventSummarySchema',
+    type: 'object'
+} as const;
+
+export const $PaginatedEventSummarySchema = {
+    properties: {
+        items: {
+            items: {
+                '$ref': '#/components/schemas/EventSummarySchema'
+            },
+            title: 'Items',
+            type: 'array'
+        },
+        next_cursor: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Next Cursor'
+        },
+        previous_cursor: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Previous Cursor'
+        },
+        has_next: {
+            title: 'Has Next',
+            type: 'boolean'
+        }
+    },
+    required: ['items', 'has_next'],
+    title: 'PaginatedEventSummarySchema',
+    type: 'object'
+} as const;
+
+export const $TopicSummarySchema = {
+    properties: {
+        slug: {
+            title: 'Slug',
+            type: 'string'
+        },
+        name: {
+            title: 'Name',
+            type: 'string'
+        }
+    },
+    required: ['slug', 'name'],
+    title: 'TopicSummarySchema',
     type: 'object'
 } as const;
 

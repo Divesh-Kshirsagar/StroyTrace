@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AppsUsersRoutersRegisterData, AppsUsersRoutersRegisterResponse, AppsUsersRoutersLoginData, AppsUsersRoutersLoginResponse, AppsUsersRoutersRefreshData, AppsUsersRoutersRefreshResponse, AppsUsersRoutersLogoutData, AppsUsersRoutersLogoutResponse, AppsUsersRoutersMeResponse, AppsUsersRoutersMyChannelResponse, AppsTopicsRoutersListTopicsResponse, AppsEventsRoutersCreateEventData, AppsEventsRoutersCreateEventResponse, AppsEventsRoutersSearchEventsData, AppsEventsRoutersSearchEventsResponse, AppsEventsRoutersGetEventData, AppsEventsRoutersGetEventResponse, AppsEventsRoutersUpdateEventData, AppsEventsRoutersUpdateEventResponse, AppsEventsRoutersDeleteEventData, AppsEventsRoutersDeleteEventResponse, AppsEventsRoutersUpdateNarrativeData, AppsEventsRoutersUpdateNarrativeResponse, AppsEventsRoutersGetNarrativeData, AppsEventsRoutersGetNarrativeResponse, AppsEventsRoutersCreateEvidenceData, AppsEventsRoutersCreateEvidenceResponse, AppsEventsRoutersListEvidenceData, AppsEventsRoutersListEvidenceResponse, AppsEventsRoutersUpdateEvidenceData, AppsEventsRoutersUpdateEvidenceResponse, AppsEventsRoutersDeleteEvidenceData, AppsEventsRoutersDeleteEvidenceResponse, AppsFeedsRoutersHomeFeedResponse } from './types.gen';
+import type { AppsUsersRoutersRegisterData, AppsUsersRoutersRegisterResponse, AppsUsersRoutersLoginData, AppsUsersRoutersLoginResponse, AppsUsersRoutersRefreshData, AppsUsersRoutersRefreshResponse, AppsUsersRoutersLogoutData, AppsUsersRoutersLogoutResponse, AppsUsersRoutersMeResponse, AppsUsersRoutersMyChannelResponse, AppsTopicsRoutersListTopicsResponse, AppsEventsRoutersCreateEventData, AppsEventsRoutersCreateEventResponse, AppsEventsRoutersSearchEventsData, AppsEventsRoutersSearchEventsResponse, AppsEventsRoutersGetEventData, AppsEventsRoutersGetEventResponse, AppsEventsRoutersUpdateEventData, AppsEventsRoutersUpdateEventResponse, AppsEventsRoutersDeleteEventData, AppsEventsRoutersDeleteEventResponse, AppsEventsRoutersUpdateNarrativeData, AppsEventsRoutersUpdateNarrativeResponse, AppsEventsRoutersGetNarrativeData, AppsEventsRoutersGetNarrativeResponse, AppsEventsRoutersCreateEvidenceData, AppsEventsRoutersCreateEvidenceResponse, AppsEventsRoutersListEvidenceData, AppsEventsRoutersListEvidenceResponse, AppsEventsRoutersUpdateEvidenceData, AppsEventsRoutersUpdateEvidenceResponse, AppsEventsRoutersDeleteEvidenceData, AppsEventsRoutersDeleteEvidenceResponse, AppsFeedsRoutersHomeFeedData, AppsFeedsRoutersHomeFeedResponse, AppsFeedsRoutersTopicFeedData, AppsFeedsRoutersTopicFeedResponse, AppsFeedsRoutersChannelFeedData, AppsFeedsRoutersChannelFeedResponse } from './types.gen';
 
 /**
  * Register
@@ -109,14 +109,22 @@ export const appsEventsRoutersCreateEvent = (data: AppsEventsRoutersCreateEventD
  * Search Events
  * @param data The data for the request.
  * @param data.q
- * @returns EventSchema OK
+ * @param data.topic
+ * @param data.status
+ * @param data.cursor
+ * @param data.limit
+ * @returns PaginatedEventSummarySchema OK
  * @throws ApiError
  */
 export const appsEventsRoutersSearchEvents = (data: AppsEventsRoutersSearchEventsData = {}): CancelablePromise<AppsEventsRoutersSearchEventsResponse> => { return __request(OpenAPI, {
     method: 'GET',
     url: '/api/v1/events/search',
     query: {
-        q: data.q
+        q: data.q,
+        topic: data.topic,
+        status: data.status,
+        cursor: data.cursor,
+        limit: data.limit
     }
 }); };
 
@@ -273,10 +281,59 @@ export const appsEventsRoutersDeleteEvidence = (data: AppsEventsRoutersDeleteEvi
 
 /**
  * Home Feed
- * @returns unknown OK
+ * @param data The data for the request.
+ * @param data.cursor
+ * @param data.limit
+ * @returns PaginatedEventSummarySchema OK
  * @throws ApiError
  */
-export const appsFeedsRoutersHomeFeed = (): CancelablePromise<AppsFeedsRoutersHomeFeedResponse> => { return __request(OpenAPI, {
+export const appsFeedsRoutersHomeFeed = (data: AppsFeedsRoutersHomeFeedData = {}): CancelablePromise<AppsFeedsRoutersHomeFeedResponse> => { return __request(OpenAPI, {
     method: 'GET',
-    url: '/api/v1/feed/home'
+    url: '/api/v1/feed/home',
+    query: {
+        cursor: data.cursor,
+        limit: data.limit
+    }
+}); };
+
+/**
+ * Topic Feed
+ * @param data The data for the request.
+ * @param data.slug
+ * @param data.cursor
+ * @param data.limit
+ * @returns PaginatedEventSummarySchema OK
+ * @throws ApiError
+ */
+export const appsFeedsRoutersTopicFeed = (data: AppsFeedsRoutersTopicFeedData): CancelablePromise<AppsFeedsRoutersTopicFeedResponse> => { return __request(OpenAPI, {
+    method: 'GET',
+    url: '/api/v1/feed/topic/{slug}',
+    path: {
+        slug: data.slug
+    },
+    query: {
+        cursor: data.cursor,
+        limit: data.limit
+    }
+}); };
+
+/**
+ * Channel Feed
+ * @param data The data for the request.
+ * @param data.handle
+ * @param data.cursor
+ * @param data.limit
+ * @returns PaginatedEventSummarySchema OK
+ * @throws ApiError
+ */
+export const appsFeedsRoutersChannelFeed = (data: AppsFeedsRoutersChannelFeedData): CancelablePromise<AppsFeedsRoutersChannelFeedResponse> => { return __request(OpenAPI, {
+    method: 'GET',
+    url: '/api/v1/feed/channel/{handle}',
+    path: {
+        handle: data.handle
+    },
+    query: {
+        cursor: data.cursor,
+        limit: data.limit
+    }
 }); };

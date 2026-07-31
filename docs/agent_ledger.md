@@ -51,3 +51,18 @@
   - `apps/frontend/app/editor/*`: Next.js pages for new and editing events.
 - **Decision Logic:** Used React Context (`EditorContext`) because the UI requires complex state coordination across deeply nested sibling components (Metadata vs Narrative vs Evidence Panels). Media uploads are strictly isolated to Evidence objects as requested by architecture specs. 
 - **Result Status:** Backend DB schema active and API passing checks. SDK successfully regenerated via HeyAPI. Frontend UI typechecks successfully (excluding internal Next.js `validator.ts` cache bug).
+
+## [2026-07-31 15:03] - Commit: pending - Task: Phase 3 Discovery & Public Pages
+
+- **Objective:** Implement discovery surfaces (home feed, topic feed, channel profile, search) and SEO-optimized server-rendered public event detail pages.
+- **Assumptions Declared:** Maintained "Strict Separation" by keeping Feed APIs separate from Event APIs. Did not use infinite scroll; used cursor pagination and Load More buttons instead as specified. Subbed out dynamic OG generation for static templates fetching primary thumbnails.
+- **Modifications Matrix:**
+  - `apps/backend/core/pagination.py`: Created cursor pagination utility.
+  - `apps/backend/apps/feeds/schemas.py`, `routers.py`: Defined lightweight `EventSummarySchema` with resolver logic. Built feed endpoints.
+  - `apps/backend/apps/events/routers.py`: Updated `/search` to use cursor pagination, filter by topic/status, and `EventSummarySchema`.
+  - `apps/backend/apps/events/schemas.py`: Attached nested `CreatorSummarySchema` for `lead_investigator`.
+  - `apps/frontend/features/feeds/*`: Built `EventCard`, `EventCardGrid`, and `FeedView`.
+  - `apps/frontend/features/events/components/*`: Built `EventDetailView`, `EvidenceBoard` (read-only), and `NarrativeRenderer` with isomorphic-dompurify and tailwind typography.
+  - `apps/frontend/app/*`: Built public routes: `page.tsx` (home), `topic/[slug]/page.tsx`, `[handle]/page.tsx`, `search/page.tsx`, and `topics/page.tsx`. Built `[handle]/[eventSlug]/page.tsx` with `generateMetadata()` for SEO.
+- **Decision Logic:** Adhered strictly to server-side rendering for indexable pages. Used Tailwind's `@tailwindcss/typography` via `@plugin` import directly in V4 globals.css. Refactored schemas so feeds return lightweight objects and event details return full objects.
+- **Result Status:** All endpoints return cleanly paginated structures. Public pages SSR beautifully with OpenGraph tags. Typecheck passes.

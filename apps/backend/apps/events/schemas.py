@@ -3,6 +3,7 @@ from typing import List, Optional
 from ninja import Schema, ModelSchema
 from uuid import UUID
 from apps.topics.schemas import TopicSchema
+from apps.feeds.schemas import CreatorSummarySchema
 
 class EvidenceSchema(Schema):
     id: UUID
@@ -45,7 +46,17 @@ class EventSchema(Schema):
     status: str
     created_at: datetime
     updated_at: datetime
+    lead_investigator: CreatorSummarySchema
     topics: List[TopicSchema]
+    
+    @staticmethod
+    def resolve_lead_investigator(obj):
+        profile = getattr(obj.lead_investigator, 'creator_profile', None)
+        return {
+            "handle": profile.handle if profile else f"user-{obj.lead_investigator.id}",
+            "display_name": profile.display_name if profile else "Unknown",
+            "avatar_url": profile.avatar_url if profile else None,
+        }
 
 class EventFullSchema(Schema):
     event: EventSchema
