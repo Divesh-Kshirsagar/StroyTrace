@@ -23,11 +23,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function TopicPage({ params }: PageProps) {
+  const { slug } = await params;
+  
+  let initialData: any;
   try {
-    const { slug } = await params;
-    const { data: initialData } = await appsFeedsRoutersTopicFeed({ path: { slug } } as any);
-    
-    async function fetchNextPage(cursor: string) {
+    const response = await appsFeedsRoutersTopicFeed({ path: { slug } } as any);
+    initialData = response.data;
+  } catch (error) {
+    // Handled below
+  }
+
+  if (!initialData) {
+    notFound();
+  }
+  
+  async function fetchNextPage(cursor: string) {
       'use server';
       const response = await appsFeedsRoutersTopicFeed({ path: { slug }, query: { cursor } } as any);
       return response.data as any;
@@ -46,7 +56,4 @@ export default async function TopicPage({ params }: PageProps) {
         />
       </main>
     );
-  } catch (error) {
-    notFound();
-  }
 }

@@ -24,23 +24,35 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ChannelPage({ params }: PageProps) {
+  const { handle } = await params;
+  // URL may contain @ symbol (e.g. /@investigator), so strip it
+  const cleanHandle = handle.replace('%40', '').replace('@', '');
+  
+  let profile: any;
+  let initialData: any;
+
   try {
-    const { handle } = await params;
-    // URL may contain @ symbol (e.g. /@investigator), so strip it
-    const cleanHandle = handle.replace('%40', '').replace('@', '');
-    
     // Fetch creator profile + topics
-    const { data: profile } = await appsUsersRoutersGetChannel({ path: { handle: cleanHandle } } as any);
-    if (!profile) throw new Error('Not found');
+    const { data: profileData } = await appsUsersRoutersGetChannel({ path: { handle: cleanHandle } } as any);
+    profile = profileData;
     
-    const { data: initialData } = await appsFeedsRoutersChannelFeed({ path: { handle: cleanHandle } } as any);
-    
-    async function fetchNextPage(cursor: string) {
-      'use server';
-      const response = await appsFeedsRoutersChannelFeed({ path: { handle: cleanHandle }, query: { cursor } } as any);
-      return response.data as any;
-    }
-    return (
+    const { data: feedData } = await appsFeedsRoutersChannelFeed({ path: { handle: cleanHandle } } as any);
+    initialData = feedData;
+  } catch (error) {
+    // We will handle the error below by checking if profile exists
+  }
+
+  if (!profile) {
+    notFound();
+  }
+
+  async function fetchNextPage(cursor: string) {
+    'use server';
+    const response = await appsFeedsRoutersChannelFeed({ path: { handle: cleanHandle }, query: { cursor } } as any);
+    return response.data as any;
+  }
+
+  return (
       <main>
         <div className="max-w-7xl mx-auto px-4 py-8 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center gap-4">
@@ -81,7 +93,4 @@ export default async function ChannelPage({ params }: PageProps) {
         />
       </main>
     );
-  } catch (error) {
-    notFound();
-  }
 }

@@ -57,11 +57,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function EventPage({ params }: PageProps) {
+  const { handle, eventSlug } = await params;
+  
+  let data: any;
   try {
-    const { handle, eventSlug } = await params;
-    const { data } = await appsEventsRoutersGetEvent({ path: { slug: eventSlug } } as any);
-    if (!data) throw new Error('Not found');    
-    const jsonLd = {
+    const response = await appsEventsRoutersGetEvent({ path: { slug: eventSlug } } as any);
+    data = response.data;
+  } catch (error) {
+    // We will handle the error below by checking if data exists
+  }
+
+  if (!data) {
+    notFound();
+  }
+
+  const jsonLd = {
       "@context": "https://schema.org",
       "@type": "NewsArticle",
       "headline": data.event.title,
@@ -84,7 +94,4 @@ export default async function EventPage({ params }: PageProps) {
         <EventDetailView data={data} />
       </>
     );
-  } catch (error) {
-    notFound();
-  }
 }

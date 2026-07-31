@@ -158,3 +158,14 @@
   - Added `apps/frontend/middleware.ts`
 - **Decision Logic:** Next 15 dynamic routing explicitly requires `params` to be unwrapped via `await`. HMR bug triggered multiple `.use()` calls without clearing. Server component fetching failed because `localStorage` is inaccessible, necessitating `cookies()` logic in `apiClient.ts`. Middleware required to fence authenticated paths (`/dashboard`).
 - **Result Status:** Build pass, Typecheck pass.
+
+## [2026-07-31 18:50] - Commit: 28e5e60cd31cda3bf1b5271f9c4fd3e17b0cd3b1 - Task: Fix Next 15 Turbopack Negative Timestamp Exception
+
+- **Objective:** Resolve the React performance measure negative timestamp runtime error triggered when loading dynamic pages.
+- **Assumptions Declared:** Next.js 15+ Turbopack performance marking breaks if an async Server Component throws a NEXT_NOT_FOUND exception from INSIDE a try-catch block (preventing correct digest boundary evaluation).
+- **Modifications Matrix:**
+  - Modified `apps/frontend/app/[handle]/page.tsx`
+  - Modified `apps/frontend/app/[handle]/[eventSlug]/page.tsx`
+  - Modified `apps/frontend/app/topic/[slug]/page.tsx`
+- **Decision Logic:** Separated the `notFound()` call from the internal `catch (error)` bounds. By fetching data and assigning it to mutable outer variables, we can trigger `notFound()` gracefully outside the try-catch barrier. This ensures Next.js successfully resolves its performance tracking and handles the 404 without crashing Turbopack metrics.
+- **Result Status:** Build pass, Typecheck pass.
