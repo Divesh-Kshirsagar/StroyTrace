@@ -56,6 +56,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (interceptorSetUp.current) return;
     interceptorSetUp.current = true;
 
+    // Use same-origin (empty baseUrl) so requests go through Next.js rewrite proxy
+    client.setConfig({ baseUrl: '' });
     client.interceptors.request.clear();
     client.interceptors.request.use((req) => {
       const token = getStoredToken();
