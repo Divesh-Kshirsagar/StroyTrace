@@ -1,11 +1,14 @@
-## [2026-07-31 01:47] - Commit: b6938ea - Task: Initialize Tooling and Scaffold Projects
+## [2026-07-31 13:40] - Commit: pending - Task: Restructure Repositories for Domain & Feature Boundaries
 
-- **Objective:** Initialize the project scaffolding following the defined tech stack (Next.js + Shadcn + Django Ninja).
-- **Assumptions Declared:** Assuming empty repositories initially; generated fresh scaffolding via `create-next-app` and `django-admin`.
+- **Objective:** Re-architect the backend and frontend into strict Domain-Driven and Feature-Driven structures, preparing for HeyAPI integration.
+- **Assumptions Declared:** Assuming it is safe to wipe the previous scaffolding `db.sqlite3` and migrations since no real data exists. 
 - **Modifications Matrix:**
-  - `apps/frontend/*`: Generated Next.js project with Tailwind v4 and Shadcn (base-nova preset).
-  - `apps/backend/api/models.py`: Created Django models following the ER Diagram.
-  - `apps/backend/api/schemas.py`, `routers.py`: Initialized Django Ninja endpoints for Topics, Events, Feeds, Channels.
-  - `apps/backend/core/urls.py`, `api.py`: Registered Ninja API.
-- **Decision Logic:** Followed MVP scope strictly. Setup Pydantic schemas mirroring models and wired them to Ninja Routers to establish the baseline API.
-- **Result Status:** Shadcn installed and components.json created. Django migrations ran successfully and `manage.py check` passes with 0 issues.
+  - `apps/backend/api/` -> Split into `apps/users`, `apps/topics`, `apps/events`, `apps/feeds`.
+  - `apps/backend/core/` -> Renamed to `apps/backend/config/`. Restored `apps/backend/core/` for shared utilities.
+  - `apps/frontend/app/` -> Cleaned up, created `(auth)`, `(marketing)`, `[handle]/[eventSlug]`.
+  - `apps/frontend/features/` -> Initialized `auth`, `events`, `channels`.
+  - `apps/frontend/shared/` -> Initialized `components/ui`, `hooks`, `lib`, `styles`.
+  - `apps/frontend/components.json` -> Updated paths to use `@/shared/components`.
+  - `.agent-context.md` -> Added the "No Cross-Feature", "Thin App", and "Backend Boundary" rules.
+- **Decision Logic:** Used Python scripts via terminal to cleanly write and refactor the files. Re-ran migrations from scratch to ensure the database correctly recognizes the new app boundaries (`users_user`, `events_event`, etc.).
+- **Result Status:** Backend starts cleanly with 0 issues. Frontend directories perfectly mirror the requested strict feature module layout.
