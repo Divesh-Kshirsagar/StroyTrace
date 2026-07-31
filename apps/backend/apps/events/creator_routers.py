@@ -13,7 +13,7 @@ class DraftsCountSchema(Schema):
 
 @creator_events_router.get("/", response=PaginatedEventSummarySchema)
 def list_creator_events(request, status: Optional[str] = None, cursor: Optional[str] = None, limit: int = 20):
-    events = Event.objects.filter(lead_investigator=request.user).select_related(
+    events = Event.objects.filter(lead_investigator=request.auth).select_related(
         'lead_investigator', 'lead_investigator__creator_profile'
     ).prefetch_related('topics', 'evidence_set')
     
@@ -24,5 +24,5 @@ def list_creator_events(request, status: Optional[str] = None, cursor: Optional[
 
 @creator_events_router.get("/drafts/count", response=DraftsCountSchema)
 def get_drafts_count(request):
-    count = Event.objects.filter(lead_investigator=request.user, status="draft").count()
+    count = Event.objects.filter(lead_investigator=request.auth, status="draft").count()
     return {"count": count}

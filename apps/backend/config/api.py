@@ -6,7 +6,7 @@ from apps.events.routers import events_router
 from apps.events.creator_routers import creator_events_router
 from apps.feeds.routers import feeds_router
 
-from core.auth import AuthBearer
+from core.auth import AuthBearer, OptionalAuthBearer
 
 api = NinjaAPI(
     title="Clarity API",
@@ -24,6 +24,10 @@ def ratelimited_handler(request, exc):
 api.add_router("/auth", auth_router)
 api.add_router("/channels", channels_router)
 api.add_router("/topics", topics_router)
-api.add_router("/events", events_router, auth=AuthBearer())
+# NOTE: events_router has individual endpoints with auth=None for public reads
+# (search, get_event). Applying router-level AuthBearer() here would override
+# those individual auth=None settings in older Ninja versions and block
+# anonymous reads. We handle per-endpoint auth inside the router itself.
+api.add_router("/events", events_router)
 api.add_router("/creator/events", creator_events_router, auth=AuthBearer())
 api.add_router("/feed", feeds_router)

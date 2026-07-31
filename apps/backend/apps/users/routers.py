@@ -22,7 +22,7 @@ channels_router = Router(tags=["channels"])
 def create_access_token(user_id: str) -> str:
     payload = {
         "user_id": user_id,
-        "exp": datetime.now(timezone.utc) + timedelta(minutes=15),
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=getattr(settings, 'ACCESS_TOKEN_EXPIRE_MINUTES', 15)),
         "iat": datetime.now(timezone.utc),
         "type": "access"
     }
@@ -31,7 +31,7 @@ def create_access_token(user_id: str) -> str:
 def create_refresh_token(user_id: str) -> str:
     payload = {
         "user_id": user_id,
-        "exp": datetime.now(timezone.utc) + timedelta(days=7),
+        "exp": datetime.now(timezone.utc) + timedelta(days=getattr(settings, 'REFRESH_TOKEN_EXPIRE_DAYS', 7)),
         "iat": datetime.now(timezone.utc),
         "type": "refresh"
     }
@@ -77,7 +77,6 @@ def login(request, payload: LoginRequest):
     
     user.last_login = datetime.now(timezone.utc)
     user.save(update_fields=['last_login'])
-
     return AuthResponse(
         user=user,
         access_token=create_access_token(str(user.id)),

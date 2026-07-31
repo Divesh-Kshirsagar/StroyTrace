@@ -1,80 +1,99 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
 import { EventSummarySchema, appsEventsRoutersSearchEvents } from '@/generated';
 import EventCardGrid from '@/features/feeds/components/EventCardGrid';
 import LoadMoreButton from '@/shared/components/LoadMoreButton';
 import { Input } from '@/shared/components/ui/input';
 
+// Read initial query from URL without subscribing to Next.js searchParams
+// (which would cause re-renders on every history.replaceState call)
+function getInitialQuery(): string {
+  if (typeof window === 'undefined') return '';
+  return new URLSearchParams(window.location.search).get('q') || '';
+}
+
 export default function SearchPage() {
-  const searchParams = useSearchParams();
-  
-  const [query, setQuery] = useState(searchParams.get('q') || '');
-  const [debouncedQuery, setDebouncedQuery] = useState(query);
+  const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [items, setItems] = useState<EventSummarySchema[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasNext, setHasNext] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const didMount = useRef(false);
 
-  // Debounce the query input
+  // On first client mount, read query from URL
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedQuery(query), 300);
+    const initial = getInitialQuery();
+    setQuery(initial);
+    setDebouncedQuery(initial);
+    didMount.current = true;
+  }, []);
+
+  // Debounce query changes after mount
+  useEffect(() => {
+    if (!didMount.current) return;
+    const timer = setTimeout(() => setDebouncedQuery(query), 400);
     return () => clearTimeout(timer);
   }, [query]);
 
-  // Sync URL silently without triggering Next.js router re-renders
+  // Sync URL silently — does NOT trigger Next.js router re-render
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (debouncedQuery) {
-      params.set('q', debouncedQuery);
-    } else {
-      params.delete('q');
-    }
+    if (!didMount.current) return;
+    const params = new URLSearchParams();
+    if (debouncedQuery) params.set('q', debouncedQuery);
     const newUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
     window.history.replaceState(null, '', newUrl);
   }, [debouncedQuery]);
 
-  // Fetch results when debounced query changes
+  // Fetch only when debouncedQuery changes (and only after mount)
   useEffect(() => {
+    if (!didMount.current) return;
+    let cancelled = false;
+
     const fetchResults = async () => {
-      if (!debouncedQuery) {
+      if (!debouncedQuery.trim()) {
         setItems([]);
+        setNextCursor(null);
         setHasNext(false);
         return;
       }
-      
+
       setIsLoading(true);
       try {
-        const { data: result } = await appsEventsRoutersSearchEvents({ query: { q: debouncedQuery } } as any);
-        if (result) {
-          setItems(result.items);
+        const { data: result } = await appsEventsRoutersSearchEvents({
+          query: { q: debouncedQuery },
+        } as any);
+        if (!cancelled && result) {
+          setItems(result.items ?? []);
           setNextCursor(result.next_cursor || null);
-          setHasNext(result.has_next);
+          setHasNext(result.has_next ?? false);
         }
       } catch (e) {
-        console.error(e);
+        if (!cancelled) console.error('[Search] fetch error:', e);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
-    
+
     fetchResults();
+    return () => { cancelled = true; };
   }, [debouncedQuery]);
 
   const handleLoadMore = async () => {
     if (!nextCursor || isLoadingMore) return;
-    
     setIsLoadingMore(true);
     try {
-      const { data: result } = await appsEventsRoutersSearchEvents({ query: { q: debouncedQuery, cursor: nextCursor } } as any);
+      const { data: result } = await appsEventsRoutersSearchEvents({
+        query: { q: debouncedQuery, cursor: nextCursor },
+      } as any);
       if (result) {
-        setItems(prev => [...prev, ...result.items]);
+        setItems(prev => [...prev, ...(result.items ?? [])]);
         setNextCursor(result.next_cursor || null);
-        setHasNext(result.has_next);
+        setHasNext(result.has_next ?? false);
       }
     } catch (e) {
-      console.error(e);
+      console.error('[Search] load more error:', e);
     } finally {
       setIsLoadingMore(false);
     }
@@ -90,21 +109,26 @@ export default function SearchPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="text-lg p-6 rounded-xl shadow-sm"
+          autoFocus
         />
       </div>
 
-      <EventCardGrid 
-        events={items} 
+      <EventCardGrid
+        events={items}
         isLoading={isLoading}
         emptyTitle="No results found"
-        emptyDescription={query ? `No events matched "${query}". Try different keywords.` : "Type above to start searching."}
+        emptyDescription={
+          debouncedQuery
+            ? `No events matched "${debouncedQuery}". Try different keywords.`
+            : 'Type above to start searching.'
+        }
       />
-      
+
       {!isLoading && (
-        <LoadMoreButton 
-          hasNext={hasNext} 
-          isLoading={isLoadingMore} 
-          onClick={handleLoadMore} 
+        <LoadMoreButton
+          hasNext={hasNext}
+          isLoading={isLoadingMore}
+          onClick={handleLoadMore}
         />
       )}
     </div>

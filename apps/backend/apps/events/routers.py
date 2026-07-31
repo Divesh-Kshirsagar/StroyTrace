@@ -9,6 +9,7 @@ import uuid
 
 from .models import Event, Narrative, Evidence
 from apps.topics.models import Topic
+from core.auth import AuthBearer, OptionalAuthBearer
 from .schemas import (
     EventSchema,
     EventCreateSchema,
@@ -26,14 +27,17 @@ from .schemas import (
 
 events_router = Router(tags=["events"])
 
+_auth = AuthBearer()
+_optional_auth = OptionalAuthBearer()
+
 def get_event_or_404(slug: str):
     return get_object_or_404(Event, slug=slug)
 
 def require_lead_investigator(request, event):
-    if event.lead_investigator != request.user:
+    if event.lead_investigator != request.auth:
         raise HttpError(403, "Only the lead investigator can modify this event")
 
-@events_router.post("/", response=EventSchema)
+@events_router.post("/", response=EventSchema, auth=_auth)
 def create_event(request, data: EventCreateSchema):
     with transaction.atomic():
         base_slug = slugify(data.title)
@@ -47,7 +51,7 @@ def create_event(request, data: EventCreateSchema):
             summary=data.summary,
             start_date=data.start_date,
             end_date=data.end_date,
-            lead_investigator=request.user
+            lead_investigator=request.auth
         )
         
         if data.topic_slugs:
@@ -76,13 +80,13 @@ def search_events(request, q: str = "", topic: str = "", status: str = "publishe
         
     return paginate_queryset(events, cursor, limit)
 
-@events_router.get("/{slug}", response=EventFullSchema, auth=None)
+@events_router.get("/{slug}", response=EventFullSchema, auth=_optional_auth)
 def get_event(request, slug: str):
     event = get_event_or_404(slug)
     narrative = getattr(event, 'narrative', None)
     if narrative and not narrative.is_published:
-        # Check if user is lead investigator, else hide narrative
-        if not hasattr(request, 'user') or event.lead_investigator != request.user:
+        # request.auth is None for anonymous; only show unpublished narrative to owner
+        if request.auth is None or event.lead_investigator != request.auth:
             narrative = None
             
     return {
@@ -91,7 +95,7 @@ def get_event(request, slug: str):
         "evidence": list(event.evidence_set.all())
     }
 
-@events_router.put("/{slug}", response=EventSchema)
+@events_router.put("/{slug}", response=EventSchema, auth=_auth)
 def update_event(request, slug: str, data: EventUpdateSchema):
     event = get_event_or_404(slug)
     require_lead_investigator(request, event)
@@ -101,14 +105,14 @@ def update_event(request, slug: str, data: EventUpdateSchema):
     event.save()
     return event
 
-@events_router.delete("/{slug}", response=MessageSchema)
+@events_router.delete("/{slug}", response=MessageSchema, auth=_auth)
 def delete_event(request, slug: str):
     event = get_event_or_404(slug)
     require_lead_investigator(request, event)
     event.delete()
     return {"message": "Deleted"}
 
-@events_router.post("/{slug}/narrative", response=NarrativeSchema)
+@events_router.post("/{slug}/narrative", response=NarrativeSchema, auth=_auth)
 def update_narrative(request, slug: str, data: NarrativeCreateUpdateSchema):
     event = get_event_or_404(slug)
     require_lead_investigator(request, event)
@@ -131,7 +135,7 @@ def get_narrative(request, slug: str):
             raise HttpError(403, "Narrative is not published")
     return narrative
 
-@events_router.post("/{slug}/evidence", response=EvidenceSchema)
+@events_router.post("/{slug}/evidence", response=EvidenceSchema, auth=_auth)
 def create_evidence(request, slug: str, data: EvidenceCreateSchema):
     event = get_event_or_404(slug)
     require_lead_investigator(request, event)
@@ -147,7 +151,7 @@ def list_evidence(request, slug: str):
     event = get_event_or_404(slug)
     return list(event.evidence_set.all())
 
-@events_router.put("/{slug}/evidence/{evidence_id}", response=EvidenceSchema)
+@events_router.put("/{slug}/evidence/{evidence_id}", response=EvidenceSchema, auth=_auth)
 def update_evidence(request, slug: str, evidence_id: uuid.UUID, data: EvidenceUpdateSchema):
     event = get_event_or_404(slug)
     require_lead_investigator(request, event)
@@ -158,7 +162,7 @@ def update_evidence(request, slug: str, evidence_id: uuid.UUID, data: EvidenceUp
     evidence.save()
     return evidence
 
-@events_router.delete("/{slug}/evidence/{evidence_id}", response=MessageSchema)
+@events_router.delete("/{slug}/evidence/{evidence_id}", response=MessageSchema, auth=_auth)
 def delete_evidence(request, slug: str, evidence_id: uuid.UUID):
     event = get_event_or_404(slug)
     require_lead_investigator(request, event)
@@ -167,7 +171,7 @@ def delete_evidence(request, slug: str, evidence_id: uuid.UUID):
     evidence.delete()
     return {"message": "Deleted"}
 
-@events_router.put("/{slug}/status", response=EventSchema)
+@events_router.put("/{slug}/status", response=EventSchema, auth=_auth)
 def update_event_status(request, slug: str, data: EventStatusUpdateSchema):
     event = get_event_or_404(slug)
     require_lead_investigator(request, event)
@@ -188,7 +192,7 @@ def update_event_status(request, slug: str, data: EventStatusUpdateSchema):
 
     return event
 
-@events_router.put("/{slug}/evidence/reorder", response=MessageSchema)
+@events_router.put("/{slug}/evidence/reorder", response=MessageSchema, auth=_auth)
 def reorder_evidence(request, slug: str, data: EvidenceReorderSchema):
     event = get_event_or_404(slug)
     require_lead_investigator(request, event)

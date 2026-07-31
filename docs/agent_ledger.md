@@ -180,3 +180,21 @@
   - Modified `apps/frontend/shared/components/Analytics.tsx`
 - **Decision Logic:** The previous search page mapped an effect to `searchParams`, but modified them concurrently via `router.push`, causing cyclical loops of network fetching and Next.js soft-navigation. Decoupled by maintaining an isolated `debouncedQuery` React state, fetching independently of the router, and quietly pushing to the URL using native HTML5 `history.replaceState`. Fixed Navbar by integrating `isLoading` skeletons rather than falling back to unauthenticated `Login` defaults. Silenced analytics by removing `console.log`.
 - **Result Status:** Build pass, Typecheck pass.
+
+## [2026-07-31 19:25] - Commit: 9528a79b78de8177c613567601b9dfd17f7fd953 - Task: Full Backend/Frontend Audit & Fixes
+
+- **Objective:** Reconcile backend/frontend discrepancies, fix route auth, add .env config, fix search re-renders, remove temp files, add backend .gitignore.
+- **Assumptions Declared:** Django-Ninja per-endpoint auth overrides do work when the router is NOT registered with router-level auth. request.auth is the correct attribute for ninja bearer auth; request.user is only available via Django's session middleware. django-cors-headers not yet installed — installed it.
+- **Modifications Matrix:**
+  - Deleted: `fix_ts.py`, `test_fetch.js`, `apps/backend/main.py`
+  - Created: `apps/backend/.gitignore`, `apps/backend/.env.example`, `apps/frontend/.env.example`
+  - Modified: `apps/backend/config/settings.py` - env-driven config, CORS, cache, ratelimit silence
+  - Modified: `apps/backend/config/api.py` - removed router-level auth on events so per-endpoint auth=None overrides work
+  - Modified: `apps/backend/core/auth.py` - added OptionalAuthBearer
+  - Modified: `apps/backend/apps/events/routers.py` - per-endpoint auth decorators, request.auth, OptionalAuthBearer on get_event
+  - Modified: `apps/backend/apps/events/creator_routers.py` - request.auth
+  - Modified: `apps/backend/apps/topics/schemas.py` - description Optional[str]
+  - Modified: `apps/backend/apps/users/routers.py` - token expiry from settings
+  - Modified: `apps/frontend/app/search/page.tsx` - complete rewrite, no useSearchParams, cancellable fetches, didMount ref
+- **Decision Logic:** The events router was registered at api.add_router with auth=AuthBearer() which overrides per-endpoint auth=None — making search/get_event inaccessible to anonymous users. Moved auth to individual mutating endpoint decorators. OptionalAuthBearer added for get_event to selectively expose unpublished narrative to its owner. Search page rewrote to eliminate useSearchParams which was subscribing to URL changes from history.replaceState causing cascade re-renders.
+- **Result Status:** Django check OK (2 silenced). 10/10 backend tests pass. Frontend typecheck pass. Frontend build pass.

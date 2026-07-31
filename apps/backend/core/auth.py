@@ -17,3 +17,22 @@ class AuthBearer(HttpBearer):
             raise HttpError(401, "Access token expired")
         except (jwt.InvalidTokenError, User.DoesNotExist):
             raise HttpError(401, "Invalid or missing token")
+
+
+class OptionalAuthBearer(HttpBearer):
+    """Returns the user if authenticated, or None for anonymous requests.
+    Use this for endpoints that serve both authenticated and anonymous users.
+    """
+    openapi_security_scheme_name = "OptionalBearer"
+
+    def authenticate(self, request, token):
+        if not token:
+            return None
+        try:
+            decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            if decoded.get("type") != "access":
+                return None
+            user = User.objects.get(id=decoded.get("user_id"), is_active=True)
+            return user
+        except Exception:
+            return None
