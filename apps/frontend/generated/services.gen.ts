@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AppsUsersRoutersRegisterData, AppsUsersRoutersRegisterResponse, AppsUsersRoutersLoginData, AppsUsersRoutersLoginResponse, AppsUsersRoutersRefreshData, AppsUsersRoutersRefreshResponse, AppsUsersRoutersLogoutData, AppsUsersRoutersLogoutResponse, AppsUsersRoutersMeResponse, AppsUsersRoutersMyChannelResponse, AppsTopicsRoutersListTopicsResponse, AppsEventsRoutersCreateEventData, AppsEventsRoutersCreateEventResponse, AppsEventsRoutersSearchEventsData, AppsEventsRoutersSearchEventsResponse, AppsEventsRoutersGetEventData, AppsEventsRoutersGetEventResponse, AppsEventsRoutersUpdateEventData, AppsEventsRoutersUpdateEventResponse, AppsEventsRoutersDeleteEventData, AppsEventsRoutersDeleteEventResponse, AppsEventsRoutersUpdateNarrativeData, AppsEventsRoutersUpdateNarrativeResponse, AppsEventsRoutersGetNarrativeData, AppsEventsRoutersGetNarrativeResponse, AppsEventsRoutersCreateEvidenceData, AppsEventsRoutersCreateEvidenceResponse, AppsEventsRoutersListEvidenceData, AppsEventsRoutersListEvidenceResponse, AppsEventsRoutersUpdateEvidenceData, AppsEventsRoutersUpdateEvidenceResponse, AppsEventsRoutersDeleteEvidenceData, AppsEventsRoutersDeleteEvidenceResponse, AppsFeedsRoutersHomeFeedData, AppsFeedsRoutersHomeFeedResponse, AppsFeedsRoutersTopicFeedData, AppsFeedsRoutersTopicFeedResponse, AppsFeedsRoutersChannelFeedData, AppsFeedsRoutersChannelFeedResponse } from './types.gen';
+import type { AppsUsersRoutersRegisterData, AppsUsersRoutersRegisterResponse, AppsUsersRoutersLoginData, AppsUsersRoutersLoginResponse, AppsUsersRoutersRefreshData, AppsUsersRoutersRefreshResponse, AppsUsersRoutersLogoutData, AppsUsersRoutersLogoutResponse, AppsUsersRoutersMeResponse, AppsUsersRoutersMyChannelResponse, AppsUsersRoutersGetChannelData, AppsUsersRoutersGetChannelResponse, AppsUsersRoutersGetMyTopicsResponse, AppsUsersRoutersSetMyTopicsData, AppsUsersRoutersSetMyTopicsResponse, AppsTopicsRoutersListTopicsResponse, AppsEventsRoutersCreateEventData, AppsEventsRoutersCreateEventResponse, AppsEventsRoutersSearchEventsData, AppsEventsRoutersSearchEventsResponse, AppsEventsRoutersGetEventData, AppsEventsRoutersGetEventResponse, AppsEventsRoutersUpdateEventData, AppsEventsRoutersUpdateEventResponse, AppsEventsRoutersDeleteEventData, AppsEventsRoutersDeleteEventResponse, AppsEventsRoutersUpdateNarrativeData, AppsEventsRoutersUpdateNarrativeResponse, AppsEventsRoutersGetNarrativeData, AppsEventsRoutersGetNarrativeResponse, AppsEventsRoutersCreateEvidenceData, AppsEventsRoutersCreateEvidenceResponse, AppsEventsRoutersListEvidenceData, AppsEventsRoutersListEvidenceResponse, AppsEventsRoutersUpdateEvidenceData, AppsEventsRoutersUpdateEvidenceResponse, AppsEventsRoutersDeleteEvidenceData, AppsEventsRoutersDeleteEvidenceResponse, AppsEventsRoutersUpdateEventStatusData, AppsEventsRoutersUpdateEventStatusResponse, AppsEventsRoutersReorderEvidenceData, AppsEventsRoutersReorderEvidenceResponse, AppsEventsCreatorRoutersListCreatorEventsData, AppsEventsCreatorRoutersListCreatorEventsResponse, AppsEventsCreatorRoutersGetDraftsCountResponse, AppsFeedsRoutersHomeFeedData, AppsFeedsRoutersHomeFeedResponse, AppsFeedsRoutersTopicFeedData, AppsFeedsRoutersTopicFeedResponse, AppsFeedsRoutersChannelFeedData, AppsFeedsRoutersChannelFeedResponse } from './types.gen';
 
 /**
  * Register
@@ -79,6 +79,45 @@ export const appsUsersRoutersMe = (): CancelablePromise<AppsUsersRoutersMeRespon
 export const appsUsersRoutersMyChannel = (): CancelablePromise<AppsUsersRoutersMyChannelResponse> => { return __request(OpenAPI, {
     method: 'GET',
     url: '/api/v1/channels/me'
+}); };
+
+/**
+ * Get Channel
+ * @param data The data for the request.
+ * @param data.handle
+ * @returns CreatorProfileSchema OK
+ * @throws ApiError
+ */
+export const appsUsersRoutersGetChannel = (data: AppsUsersRoutersGetChannelData): CancelablePromise<AppsUsersRoutersGetChannelResponse> => { return __request(OpenAPI, {
+    method: 'GET',
+    url: '/api/v1/channels/{handle}',
+    path: {
+        handle: data.handle
+    }
+}); };
+
+/**
+ * Get My Topics
+ * @returns TopicSchema OK
+ * @throws ApiError
+ */
+export const appsUsersRoutersGetMyTopics = (): CancelablePromise<AppsUsersRoutersGetMyTopicsResponse> => { return __request(OpenAPI, {
+    method: 'GET',
+    url: '/api/v1/channels/me/topics'
+}); };
+
+/**
+ * Set My Topics
+ * @param data The data for the request.
+ * @param data.requestBody
+ * @returns MessageResponse OK
+ * @throws ApiError
+ */
+export const appsUsersRoutersSetMyTopics = (data: AppsUsersRoutersSetMyTopicsData): CancelablePromise<AppsUsersRoutersSetMyTopicsResponse> => { return __request(OpenAPI, {
+    method: 'POST',
+    url: '/api/v1/channels/me/topics',
+    body: data.requestBody,
+    mediaType: 'application/json'
 }); };
 
 /**
@@ -277,6 +316,71 @@ export const appsEventsRoutersDeleteEvidence = (data: AppsEventsRoutersDeleteEvi
         slug: data.slug,
         evidence_id: data.evidenceId
     }
+}); };
+
+/**
+ * Update Event Status
+ * @param data The data for the request.
+ * @param data.slug
+ * @param data.requestBody
+ * @returns EventSchema OK
+ * @throws ApiError
+ */
+export const appsEventsRoutersUpdateEventStatus = (data: AppsEventsRoutersUpdateEventStatusData): CancelablePromise<AppsEventsRoutersUpdateEventStatusResponse> => { return __request(OpenAPI, {
+    method: 'PUT',
+    url: '/api/v1/events/{slug}/status',
+    path: {
+        slug: data.slug
+    },
+    body: data.requestBody,
+    mediaType: 'application/json'
+}); };
+
+/**
+ * Reorder Evidence
+ * @param data The data for the request.
+ * @param data.slug
+ * @param data.requestBody
+ * @returns MessageSchema OK
+ * @throws ApiError
+ */
+export const appsEventsRoutersReorderEvidence = (data: AppsEventsRoutersReorderEvidenceData): CancelablePromise<AppsEventsRoutersReorderEvidenceResponse> => { return __request(OpenAPI, {
+    method: 'PUT',
+    url: '/api/v1/events/{slug}/evidence/reorder',
+    path: {
+        slug: data.slug
+    },
+    body: data.requestBody,
+    mediaType: 'application/json'
+}); };
+
+/**
+ * List Creator Events
+ * @param data The data for the request.
+ * @param data.status
+ * @param data.cursor
+ * @param data.limit
+ * @returns PaginatedEventSummarySchema OK
+ * @throws ApiError
+ */
+export const appsEventsCreatorRoutersListCreatorEvents = (data: AppsEventsCreatorRoutersListCreatorEventsData = {}): CancelablePromise<AppsEventsCreatorRoutersListCreatorEventsResponse> => { return __request(OpenAPI, {
+    method: 'GET',
+    url: '/api/v1/creator/events/',
+    query: {
+        status: data.status,
+        cursor: data.cursor,
+        limit: data.limit
+    }
+}); };
+
+/**
+ * Get Drafts Count
+ * @returns DraftsCountSchema OK
+ * @throws ApiError
+ */
+export const appsEventsCreatorRoutersGetDraftsCount = (): CancelablePromise<AppsEventsCreatorRoutersGetDraftsCountResponse> => { return __request(OpenAPI, {
+    method: 'GET',
+    url: '/api/v1/creator/events/drafts/count'
 }); };
 
 /**

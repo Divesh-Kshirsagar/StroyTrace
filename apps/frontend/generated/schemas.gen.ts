@@ -75,10 +75,43 @@ export const $CreatorProfileSchema = {
         is_verified: {
             title: 'Is Verified',
             type: 'boolean'
+        },
+        topics: {
+            default: [],
+            items: {
+                '$ref': '#/components/schemas/TopicSchema'
+            },
+            title: 'Topics',
+            type: 'array'
         }
     },
     required: ['id', 'handle', 'display_name', 'social_links', 'is_verified'],
     title: 'CreatorProfileSchema',
+    type: 'object'
+} as const;
+
+export const $TopicSchema = {
+    properties: {
+        id: {
+            format: 'uuid',
+            title: 'Id',
+            type: 'string'
+        },
+        name: {
+            title: 'Name',
+            type: 'string'
+        },
+        slug: {
+            title: 'Slug',
+            type: 'string'
+        },
+        description: {
+            title: 'Description',
+            type: 'string'
+        }
+    },
+    required: ['id', 'name', 'slug', 'description'],
+    title: 'TopicSchema',
     type: 'object'
 } as const;
 
@@ -208,28 +241,18 @@ export const $LogoutRequest = {
     type: 'object'
 } as const;
 
-export const $TopicSchema = {
+export const $TopicCurationSchema = {
     properties: {
-        id: {
-            format: 'uuid',
-            title: 'Id',
-            type: 'string'
-        },
-        name: {
-            title: 'Name',
-            type: 'string'
-        },
-        slug: {
-            title: 'Slug',
-            type: 'string'
-        },
-        description: {
-            title: 'Description',
-            type: 'string'
+        topic_slugs: {
+            items: {
+                type: 'string'
+            },
+            title: 'Topic Slugs',
+            type: 'array'
         }
     },
-    required: ['id', 'name', 'slug', 'description'],
-    title: 'TopicSchema',
+    required: ['topic_slugs'],
+    title: 'TopicCurationSchema',
     type: 'object'
 } as const;
 
@@ -799,5 +822,45 @@ export const $EvidenceUpdateSchema = {
         }
     },
     title: 'EvidenceUpdateSchema',
+    type: 'object'
+} as const;
+
+export const $EventStatusUpdateSchema = {
+    properties: {
+        status: {
+            title: 'Status',
+            type: 'string'
+        }
+    },
+    required: ['status'],
+    title: 'EventStatusUpdateSchema',
+    type: 'object'
+} as const;
+
+export const $EvidenceReorderSchema = {
+    properties: {
+        evidence_ids: {
+            items: {
+                format: 'uuid',
+                type: 'string'
+            },
+            title: 'Evidence Ids',
+            type: 'array'
+        }
+    },
+    required: ['evidence_ids'],
+    title: 'EvidenceReorderSchema',
+    type: 'object'
+} as const;
+
+export const $DraftsCountSchema = {
+    properties: {
+        count: {
+            title: 'Count',
+            type: 'integer'
+        }
+    },
+    required: ['count'],
+    title: 'DraftsCountSchema',
     type: 'object'
 } as const;

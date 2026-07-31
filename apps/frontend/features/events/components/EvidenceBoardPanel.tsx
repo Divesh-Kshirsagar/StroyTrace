@@ -4,10 +4,76 @@ import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { useState } from 'react';
 import AddEvidenceModal from './AddEvidenceModal';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+function SortableEvidenceCard({ item, onRemove, isEditing }: { item: any, onRemove: (id: string) => void, isEditing: boolean }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <Card ref={setNodeRef} style={style} className="overflow-hidden shadow-sm hover:shadow-md transition-shadow relative group">
+      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 z-10">
+        <Button variant="secondary" size="sm" {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+          Drag
+        </Button>
+        {isEditing && (
+          <Button variant="destructive" size="sm" onClick={() => onRemove(item.id)}>
+            Remove
+          </Button>
+        )}
+      </div>
+      <div className="aspect-video bg-zinc-200 dark:bg-zinc-800 relative">
+        {item.thumbnail_url ? (
+          <img src={item.thumbnail_url} alt={item.caption || 'Evidence'} className="object-cover w-full h-full" />
+        ) : (
+          <div className="flex items-center justify-center w-full h-full text-zinc-400">
+            [{item.media_type}]
+          </div>
+        )}
+      </div>
+      <div className="p-2 text-xs truncate" title={item.caption || item.source_url}>
+        {item.caption || item.source_url}
+      </div>
+    </Card>
+  );
+}
 
 export default function EvidenceBoardPanel() {
-  const { evidenceQueue } = useEditor();
+  const { evidenceQueue, updateEvidenceOrder, removeEvidence, isEditing } = useEditor();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      const oldIndex = evidenceQueue.findIndex((i) => i.id === active.id);
+      const newIndex = evidenceQueue.findIndex((i) => i.id === over.id);
+      
+      const newArray = arrayMove(evidenceQueue, oldIndex, newIndex);
+      // Update display order internally for UI predictability, though backend uses array index
+      const reordered = newArray.map((item, idx) => ({ ...item, display_order: idx }));
+      updateEvidenceOrder(reordered);
+    }
+  };
 
   return (
     <Card className="flex flex-col h-full overflow-hidden bg-zinc-100 dark:bg-zinc-950/50">
@@ -25,24 +91,27 @@ export default function EvidenceBoardPanel() {
             <p className="text-sm text-center max-w-xs">All media must be added here to maintain a structured investigation record.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {evidenceQueue.map((item, i) => (
-              <Card key={item.id || i} className="overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <div className="aspect-video bg-zinc-200 dark:bg-zinc-800 relative">
-                  {item.thumbnail_url ? (
-                    <img src={item.thumbnail_url} alt={item.caption || 'Evidence'} className="object-cover w-full h-full" />
-                  ) : (
-                    <div className="flex items-center justify-center w-full h-full text-zinc-400">
-                      [{item.media_type}]
-                    </div>
-                  )}
-                </div>
-                <div className="p-2 text-xs truncate" title={item.caption || item.source_url}>
-                  {item.caption || item.source_url}
-                </div>
-              </Card>
-            ))}
-          </div>
+          <DndContext 
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext 
+              items={evidenceQueue.map(i => i.id)}
+              strategy={rectSortingStrategy}
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {evidenceQueue.map((item) => (
+                  <SortableEvidenceCard 
+                    key={item.id} 
+                    item={item} 
+                    onRemove={removeEvidence}
+                    isEditing={isEditing}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
       </div>
 

@@ -14,6 +14,7 @@ interface EditorState {
   evidenceQueue: EvidenceSchema[];
   evidenceIsDirty: boolean;
   isCreating: boolean;
+  isEditing: boolean;
   isPublishing: boolean;
   error: string | null;
 }
@@ -21,7 +22,10 @@ interface EditorState {
 interface EditorContextType extends EditorState {
   setEvent: (event: EventFullSchema['event'] | null) => void;
   setNarrativeContent: (content: string) => void;
+  saveNarrative: () => Promise<void>;
   addEvidenceToQueue: (evidence: any) => void;
+  removeEvidence: (id: string) => Promise<void>;
+  updateEvidenceOrder: (newOrder: EvidenceSchema[]) => Promise<void>;
   setError: (error: string | null) => void;
   createEventShell: (title: string, summary: string, startDate: string, topicSlugs: string[]) => Promise<void>;
   publishEvent: () => Promise<void>;
@@ -39,8 +43,28 @@ export const EditorProvider = ({ children, initialEvent = null }: { children: Re
   const [isPublishing, setIsPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isEditing = !!initialEvent;
+
   const setNarrativeContent = (content: string) => {
-    setNarrative({ content, isDirty: true, isSaving: false });
+    if (content !== narrative.content) {
+      setNarrative({ content, isDirty: true, isSaving: false });
+    }
+  };
+
+  const saveNarrative = async () => {
+    if (!event || !narrative.isDirty) return;
+    setNarrative(prev => ({ ...prev, isSaving: true }));
+    try {
+      await appsEventsRoutersUpdateNarrative({
+        slug: event.slug,
+        requestBody: { content: narrative.content, is_published: true }
+      });
+      setNarrative(prev => ({ ...prev, isDirty: false, isSaving: false }));
+    } catch (err: any) {
+      console.error(err);
+      setNarrative(prev => ({ ...prev, isSaving: false }));
+      // keeping isDirty true so it retries
+    }
   };
 
   const addEvidenceToQueue = (evidence: any) => {
@@ -54,8 +78,50 @@ export const EditorProvider = ({ children, initialEvent = null }: { children: Re
       display_order: evidenceQueue.length,
       created_at: new Date().toISOString()
     };
-    setEvidenceQueue([...evidenceQueue, optimistic]);
+    const newQueue = [...evidenceQueue, optimistic];
+    setEvidenceQueue(newQueue);
     setEvidenceIsDirty(true);
+    
+    // Auto-save evidence for edit mode
+    if (isEditing && event) {
+      appsEventsRoutersCreateEvidence({
+        slug: event.slug,
+        requestBody: {
+          media_type: optimistic.media_type,
+          source_url: optimistic.source_url,
+          thumbnail_url: optimistic.thumbnail_url || undefined,
+          caption: optimistic.caption || undefined,
+          display_order: optimistic.display_order
+        }
+      }).catch(console.error);
+    }
+  };
+
+  const removeEvidence = async (id: string) => {
+    setEvidenceQueue(prev => prev.filter(e => e.id !== id));
+    if (isEditing && event) {
+      try {
+        const { appsEventsRoutersDeleteEvidence } = await import('@/generated/services.gen');
+        await appsEventsRoutersDeleteEvidence({ slug: event.slug, evidence_id: id } as any);
+      } catch (err) {
+        console.error("Failed to delete evidence", err);
+      }
+    }
+  };
+
+  const updateEvidenceOrder = async (newOrder: EvidenceSchema[]) => {
+    setEvidenceQueue(newOrder);
+    if (isEditing && event) {
+      try {
+        const { appsEventsRoutersReorderEvidence } = await import('@/generated/services.gen');
+        await appsEventsRoutersReorderEvidence({
+          slug: event.slug,
+          requestBody: { evidence_ids: newOrder.map(e => e.id as any) }
+        });
+      } catch (err) {
+        console.error("Failed to reorder evidence", err);
+      }
+    }
   };
 
   const createEventShell = async (title: string, summary: string, startDate: string, topicSlugs: string[]) => {
@@ -126,8 +192,8 @@ export const EditorProvider = ({ children, initialEvent = null }: { children: Re
 
   return (
     <EditorContext.Provider value={{
-      event, narrative, evidenceQueue, evidenceIsDirty, isCreating, isPublishing, error,
-      setEvent, setNarrativeContent, addEvidenceToQueue, setError, createEventShell, publishEvent
+      event, narrative, evidenceQueue, evidenceIsDirty, isCreating, isEditing, isPublishing, error,
+      setEvent, setNarrativeContent, saveNarrative, addEvidenceToQueue, removeEvidence, updateEvidenceOrder, setError, createEventShell, publishEvent
     }}>
       {children}
     </EditorContext.Provider>

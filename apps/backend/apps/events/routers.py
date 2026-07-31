@@ -19,7 +19,9 @@ from .schemas import (
     EvidenceSchema,
     EvidenceCreateSchema,
     EvidenceUpdateSchema,
-    MessageSchema
+    MessageSchema,
+    EventStatusUpdateSchema,
+    EvidenceReorderSchema
 )
 
 events_router = Router(tags=["events"])
@@ -164,3 +166,33 @@ def delete_evidence(request, slug: str, evidence_id: uuid.UUID):
     evidence = get_object_or_404(Evidence, id=evidence_id, event=event)
     evidence.delete()
     return {"message": "Deleted"}
+
+@events_router.put("/{slug}/status", response=EventSchema)
+def update_event_status(request, slug: str, data: EventStatusUpdateSchema):
+    event = get_event_or_404(slug)
+    require_lead_investigator(request, event)
+    
+    if data.status not in ["draft", "published", "archived"]:
+        raise HttpError(400, "Invalid status")
+        
+    event.status = data.status
+    event.save()
+    return event
+
+@events_router.put("/{slug}/evidence/reorder", response=MessageSchema)
+def reorder_evidence(request, slug: str, data: EvidenceReorderSchema):
+    event = get_event_or_404(slug)
+    require_lead_investigator(request, event)
+    
+    with transaction.atomic():
+        # Validate that all IDs belong to this event
+        existing_ids = set(event.evidence_set.values_list('id', flat=True))
+        provided_ids = set(data.evidence_ids)
+        
+        if not provided_ids.issubset(existing_ids):
+            raise HttpError(400, "Some evidence IDs do not belong to this event")
+            
+        for index, ev_id in enumerate(data.evidence_ids):
+            Evidence.objects.filter(id=ev_id, event=event).update(display_order=index)
+            
+    return {"message": "Success"}

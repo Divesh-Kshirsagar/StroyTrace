@@ -4,10 +4,20 @@ import { useEditor as useTipTap, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import { Card } from '@/shared/components/ui/card';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export default function NarrativeEditorPanel() {
-  const { narrative, setNarrativeContent } = useEditor();
+  const { event, narrative, setNarrativeContent, saveNarrative } = useEditor();
+  const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  useEffect(() => {
+    if (narrative.isDirty && !narrative.isSaving && event) {
+      saveTimeoutRef.current = setTimeout(() => {
+        saveNarrative();
+      }, 2000);
+    }
+    return () => clearTimeout(saveTimeoutRef.current);
+  }, [narrative.content, narrative.isDirty, narrative.isSaving, event]);
 
   const editor = useTipTap({
     extensions: [
@@ -29,8 +39,8 @@ export default function NarrativeEditorPanel() {
     <Card className="flex flex-col h-full overflow-hidden border-r border-zinc-200 dark:border-zinc-800">
       <div className="p-3 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 flex justify-between items-center">
         <h3 className="font-semibold">Narrative</h3>
-        <span className="text-xs text-zinc-500">
-          {narrative.isDirty ? 'Unsaved changes' : 'Saved'}
+        <span className="text-xs font-medium text-zinc-500">
+          {narrative.isSaving ? 'Saving...' : narrative.isDirty ? 'Unsaved changes' : 'Saved'}
         </span>
       </div>
       

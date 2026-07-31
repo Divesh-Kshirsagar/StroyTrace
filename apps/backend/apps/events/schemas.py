@@ -77,5 +77,11 @@ class EventUpdateSchema(Schema):
     end_date: Optional[date] = None
     status: Optional[str] = None
 
+class EventStatusUpdateSchema(Schema):
+    status: str
+
+class EvidenceReorderSchema(Schema):
+    evidence_ids: List[UUID]
+
 class MessageSchema(Schema):
     message: str

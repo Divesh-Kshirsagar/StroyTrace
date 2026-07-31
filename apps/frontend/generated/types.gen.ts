@@ -17,6 +17,14 @@ export type CreatorProfileSchema = {
         [key: string]: unknown;
     };
     is_verified: boolean;
+    topics?: Array<TopicSchema>;
+};
+
+export type TopicSchema = {
+    id: string;
+    name: string;
+    slug: string;
+    description: string;
 };
 
 export type UserSchema = {
@@ -55,11 +63,8 @@ export type LogoutRequest = {
     refresh_token: string;
 };
 
-export type TopicSchema = {
-    id: string;
-    name: string;
-    slug: string;
-    description: string;
+export type TopicCurationSchema = {
+    topic_slugs: Array<(string)>;
 };
 
 export type CreatorSummarySchema = {
@@ -170,6 +175,18 @@ export type EvidenceUpdateSchema = {
     display_order?: number | null;
 };
 
+export type EventStatusUpdateSchema = {
+    status: string;
+};
+
+export type EvidenceReorderSchema = {
+    evidence_ids: Array<(string)>;
+};
+
+export type DraftsCountSchema = {
+    count: number;
+};
+
 export type AppsUsersRoutersRegisterData = {
     requestBody: RegisterRequest;
 };
@@ -197,6 +214,20 @@ export type AppsUsersRoutersLogoutResponse = MessageResponse;
 export type AppsUsersRoutersMeResponse = UserSchema;
 
 export type AppsUsersRoutersMyChannelResponse = UserSchema;
+
+export type AppsUsersRoutersGetChannelData = {
+    handle: string;
+};
+
+export type AppsUsersRoutersGetChannelResponse = CreatorProfileSchema;
+
+export type AppsUsersRoutersGetMyTopicsResponse = Array<TopicSchema>;
+
+export type AppsUsersRoutersSetMyTopicsData = {
+    requestBody: TopicCurationSchema;
+};
+
+export type AppsUsersRoutersSetMyTopicsResponse = MessageResponse;
 
 export type AppsTopicsRoutersListTopicsResponse = Array<TopicSchema>;
 
@@ -275,6 +306,30 @@ export type AppsEventsRoutersDeleteEvidenceData = {
 };
 
 export type AppsEventsRoutersDeleteEvidenceResponse = MessageSchema;
+
+export type AppsEventsRoutersUpdateEventStatusData = {
+    requestBody: EventStatusUpdateSchema;
+    slug: string;
+};
+
+export type AppsEventsRoutersUpdateEventStatusResponse = EventSchema;
+
+export type AppsEventsRoutersReorderEvidenceData = {
+    requestBody: EvidenceReorderSchema;
+    slug: string;
+};
+
+export type AppsEventsRoutersReorderEvidenceResponse = MessageSchema;
+
+export type AppsEventsCreatorRoutersListCreatorEventsData = {
+    cursor?: string | null;
+    limit?: number;
+    status?: string | null;
+};
+
+export type AppsEventsCreatorRoutersListCreatorEventsResponse = PaginatedEventSummarySchema;
+
+export type AppsEventsCreatorRoutersGetDraftsCountResponse = DraftsCountSchema;
 
 export type AppsFeedsRoutersHomeFeedData = {
     cursor?: string | null;

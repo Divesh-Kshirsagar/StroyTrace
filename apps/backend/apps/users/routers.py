@@ -8,8 +8,11 @@ import jwt
 from .models import User, CreatorProfile
 from .schemas import (
     RegisterRequest, AuthResponse, LoginRequest, LogoutRequest, 
-    RefreshRequest, RefreshResponse, MessageResponse, UserSchema
+    RefreshRequest, RefreshResponse, MessageResponse, UserSchema,
+    TopicCurationSchema
 )
+from apps.topics.schemas import TopicSchema
+from apps.topics.models import Topic
 from core.auth import AuthBearer
 
 auth_router = Router(tags=["auth"])
@@ -106,3 +109,36 @@ def me(request):
 @channels_router.get("/me", response=UserSchema, auth=AuthBearer())
 def my_channel(request):
     return request.auth
+
+from django.shortcuts import get_object_or_404
+from .schemas import CreatorProfileSchema
+
+@channels_router.get("/{handle}", response=CreatorProfileSchema, auth=None)
+def get_channel(request, handle: str):
+    profile = get_object_or_404(CreatorProfile, handle=handle)
+    profile_dict = {
+        "id": profile.id,
+        "handle": profile.handle,
+        "display_name": profile.display_name,
+        "bio": profile.bio,
+        "avatar_url": profile.avatar_url,
+        "banner_url": profile.banner_url,
+        "social_links": profile.social_links,
+        "is_verified": profile.is_verified,
+        "topics": list(profile.topics.all())
+    }
+    return profile_dict
+
+from typing import List
+
+@channels_router.get("/me/topics", response=List[TopicSchema], auth=AuthBearer())
+def get_my_topics(request):
+    profile = request.auth.creator_profile
+    return list(profile.topics.all())
+
+@channels_router.post("/me/topics", response=MessageResponse, auth=AuthBearer())
+def set_my_topics(request, payload: TopicCurationSchema):
+    profile = request.auth.creator_profile
+    topics = Topic.objects.filter(slug__in=payload.topic_slugs)
+    profile.topics.set(topics)
+    return MessageResponse(message="Success")

@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 import uuid
 from datetime import datetime
+from apps.topics.schemas import TopicSchema
 
 class CreatorProfileSchema(BaseModel):
     id: uuid.UUID
@@ -12,6 +13,7 @@ class CreatorProfileSchema(BaseModel):
     banner_url: Optional[str] = None
     social_links: dict
     is_verified: bool
+    topics: list[TopicSchema] = []
 
 class UserSchema(BaseModel):
     id: uuid.UUID
@@ -46,3 +48,6 @@ class RefreshResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+class TopicCurationSchema(BaseModel):
+    topic_slugs: list[str]

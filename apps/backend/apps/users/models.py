@@ -55,6 +55,7 @@ class CreatorProfile(models.Model):
     banner_url = models.URLField(blank=True, null=True)
     social_links = models.JSONField(default=dict, blank=True)
     is_verified = models.BooleanField(default=False)
+    topics = models.ManyToManyField('topics.Topic', related_name='curators', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
