@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate
 from django.conf import settings
 from datetime import datetime, timedelta, timezone
 import jwt
+from django_ratelimit.decorators import ratelimit
 
 from .models import User, CreatorProfile
 from .schemas import (
@@ -37,6 +38,7 @@ def create_refresh_token(user_id: str) -> str:
     return jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
 @auth_router.post("/register", response=AuthResponse, auth=None)
+@ratelimit(key='ip', rate='3/h', block=True)
 def register(request, payload: RegisterRequest):
     email = payload.email.lower()
     if User.objects.filter(email=email).exists():
@@ -66,6 +68,7 @@ def register(request, payload: RegisterRequest):
     )
 
 @auth_router.post("/login", response=AuthResponse, auth=None)
+@ratelimit(key='ip', rate='5/15m', block=True)
 def login(request, payload: LoginRequest):
     email = payload.email.lower()
     user = authenticate(email=email, password=payload.password)

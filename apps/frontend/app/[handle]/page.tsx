@@ -4,6 +4,7 @@ import { appsFeedsRoutersChannelFeed, appsUsersRoutersGetChannel } from '@/gener
 import FeedView from '@/features/feeds/components/FeedView';
 import CreatorBadge from '@/shared/components/CreatorBadge';
 import TopicCurationSection from '@/features/channels/components/TopicCurationSection';
+import SubscribeForm from '@/features/channels/components/SubscribeForm';
 
 interface PageProps {
   params: {
@@ -68,6 +69,9 @@ export default async function ChannelPage({ params }: PageProps) {
           </div>
           <div className="mt-6">
             <TopicCurationSection channelHandle={cleanHandle} initialTopics={profile.topics || []} />
+          </div>
+          <div className="mt-8">
+            <SubscribeForm channelHandle={cleanHandle} />
           </div>
         </div>
 

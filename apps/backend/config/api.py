@@ -14,6 +14,13 @@ api = NinjaAPI(
     version="1.0.0",
 )
 
+from django_ratelimit.exceptions import Ratelimited
+@api.exception_handler(Ratelimited)
+def ratelimited_handler(request, exc):
+    response = api.create_response(request, {"detail": "Too many requests. Please try again later."}, status=429)
+    response['Retry-After'] = '900'
+    return response
+
 api.add_router("/auth", auth_router)
 api.add_router("/channels", channels_router)
 api.add_router("/topics", topics_router)

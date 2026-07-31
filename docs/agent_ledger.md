@@ -66,3 +66,37 @@
   - `apps/frontend/app/*`: Built public routes: `page.tsx` (home), `topic/[slug]/page.tsx`, `[handle]/page.tsx`, `search/page.tsx`, and `topics/page.tsx`. Built `[handle]/[eventSlug]/page.tsx` with `generateMetadata()` for SEO.
 - **Decision Logic:** Adhered strictly to server-side rendering for indexable pages. Used Tailwind's `@tailwindcss/typography` via `@plugin` import directly in V4 globals.css. Refactored schemas so feeds return lightweight objects and event details return full objects.
 - **Result Status:** All endpoints return cleanly paginated structures. Public pages SSR beautifully with OpenGraph tags. Typecheck passes.
+
+## [2026-07-31 15:20] - Commit: 21a434847b89a210f429610a5952468959b0bc88 - Task: Phase 4 Creator Experience & Backend Polish
+
+- **Objective:** Build the workflow layer for creators to manage drafts, edit work, and curate channel topics. Implement Backend Admin and Frontend Loading/Error UI polish.
+- **Assumptions Declared:** The editor must detect if it is creating or editing based on initial properties. Topics are curated strictly on the creator profile and not bound arbitrarily to events in this workflow. DnD-kit can be utilized for optimistic reordering without page refresh.
+- **Modifications Matrix:**
+  - `apps/backend/apps/events/schemas.py`, `routers.py`: Added `EventStatusUpdateSchema`, `EvidenceReorderSchema`. Created `PUT` endpoints for status update and reordering.
+  - `apps/backend/apps/users/schemas.py`, `routers.py`: Added `TopicCurationSchema` and `topics` to `CreatorProfileSchema`. Created `GET /channels/{handle}`.
+  - `apps/frontend/features/events/context/EditorContext.tsx`: Added `isEditing`, `saveNarrative`, `updateEvidenceOrder`, and `removeEvidence`.
+  - `apps/frontend/features/events/components/NarrativeEditorPanel.tsx`: Added debounced auto-save hook for narrative changes.
+  - `apps/frontend/features/events/components/EvidenceBoardPanel.tsx`: Integrated `@dnd-kit/core` for drag-and-drop reordering.
+  - `apps/frontend/features/dashboard/components/*`: Built the `Dashboard.tsx` and `EventRow.tsx` components.
+  - `apps/frontend/features/channels/components/TopicCurationSection.tsx`: Built the topic curation section and modal logic.
+  - `apps/frontend/app/error.tsx`, `loading.tsx`, `[handle]/loading.tsx`, `[handle]/[slug]/loading.tsx`: Configured error boundaries and loading skeletons.
+  - `apps/backend/apps/*/admin.py`: Configured Django admin dashboards for `Event`, `Topic`, `User`, `CreatorProfile`.
+- **Decision Logic:** The `TopicCurationSection` makes a check against `appsUsersRoutersMe` to render the "Edit Topics" button only for the owner. `EvidenceBoardPanel` uses `@dnd-kit`'s sortable context to perform instantaneous array swaps, immediately pushing the update to the backend endpoint so state is always synced. `NarrativeEditorPanel` uses a debounced timeout against the Context `narrative.isDirty` flag, setting `isSaving` to provide visual feedback.
+- **Result Status:** Compile state passes. Type checks resolved. The application is now fully functional for creators and readers alike.
+
+## [2026-07-31 15:39] - Commit: ea1cfdc - Task: Phase 5 Polish & Launch Prep
+
+- **Objective:** Finalize the application for launch by implementing global error boundaries, custom skeletons, rate limiting, SEO metadata, and mock email/analytics integrations.
+- **Assumptions Declared:** For MVP, mocked external services (email on publish, pageview analytics) directly in code to prove workflow before adding third-party APIs. Used `django-ratelimit` for endpoint protection.
+- **Modifications Matrix:**
+  - `apps/frontend/app/global-error.tsx`, `error.tsx`, `shared/components/ClientErrorBoundary.tsx`: Implemented React error boundaries.
+  - `apps/frontend/features/*/components/*Skeleton.tsx`: Created layout-matching skeletons for all data views.
+  - `apps/frontend/app/sitemap.ts`, `robots.ts`: Configured standard SEO crawlers.
+  - `apps/frontend/app/[handle]/[eventSlug]/page.tsx`: Injected dynamic JSON-LD structured data and canonical links.
+  - `apps/backend/apps/users/routers.py`, `config/api.py`: Secured authentication endpoints with rate limit decorators.
+  - `apps/frontend/features/events/schemas.ts`: Applied strict cross-field validation rules using Zod `superRefine`.
+  - `apps/backend/apps/events/routers.py`: Added mock console email dispatch upon event publication.
+  - `apps/frontend/shared/components/Analytics.tsx`: Integrated a dummy pageview tracker in the root layout.
+  - `apps/frontend/features/channels/components/SubscribeForm.tsx`: Built the subscription UI component with `localStorage` persistence.
+- **Decision Logic:** I applied `ClientErrorBoundary` locally to the Dashboard while using `global-error.tsx` for terminal Next.js failures. Instead of generic spinners, I created exact `Skeleton` replicas of the UI to prevent layout shift (CLS). Added JSON-LD as standard script tags. Handled the rate limit exception at the Ninja `api.py` root to return 429 cleanly without breaking the OpenAPI schema.
+- **Result Status:** Next.js build passes. Skeletons render beautifully. Validation prevents malformed submissions. The MVP is ready.

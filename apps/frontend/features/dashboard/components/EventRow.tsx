@@ -62,7 +62,7 @@ export default function EventRow({ event, onUpdate }: EventRowProps) {
     }
   };
 
-  const formattedDate = new Date(event.updated_at).toLocaleDateString(undefined, {
+  const formattedDate = new Date(event.created_at).toLocaleDateString(undefined, {
     month: 'short', day: 'numeric', year: 'numeric'
   });
 

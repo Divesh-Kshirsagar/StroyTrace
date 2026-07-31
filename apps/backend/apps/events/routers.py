@@ -175,8 +175,17 @@ def update_event_status(request, slug: str, data: EventStatusUpdateSchema):
     if data.status not in ["draft", "published", "archived"]:
         raise HttpError(400, "Invalid status")
         
+    old_status = event.status
     event.status = data.status
     event.save()
+    
+    if old_status != "published" and data.status == "published":
+        try:
+            handle = event.lead_investigator.creator_profile.handle
+            print(f"[MOCK EMAIL] To subscribers of @{handle}: New Event published - '{event.title}' at https://clarity.com/{handle}/{event.slug}")
+        except Exception as e:
+            print(f"[MOCK EMAIL ERROR] {e}")
+
     return event
 
 @events_router.put("/{slug}/evidence/reorder", response=MessageSchema)

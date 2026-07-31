@@ -24,10 +24,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     // Find primary thumbnail
     const firstEvidenceWithThumbnail = data.evidence?.find(e => e.thumbnail_url);
     const ogImage = firstEvidenceWithThumbnail?.thumbnail_url || '/og-default.png';
+    const canonicalUrl = `https://clarity.com/${params.handle}/${params.eventSlug}`;
 
     return {
       title,
       description,
+      alternates: {
+        canonical: canonicalUrl,
+      },
       openGraph: {
         title,
         description,
@@ -52,7 +56,31 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function EventPage({ params }: PageProps) {
   try {
     const data = await appsEventsRoutersGetEvent({ slug: params.eventSlug } as any);
-    return <EventDetailView data={data} />;
+    const canonicalUrl = `https://clarity.com/${params.handle}/${params.eventSlug}`;
+    
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "NewsArticle",
+      "headline": data.event.title,
+      "datePublished": data.event.start_date,
+      "dateModified": data.event.updated_at,
+      "author": [{
+          "@type": "Person",
+          "name": params.handle,
+          "url": `https://clarity.com/${params.handle}`
+      }],
+      "description": data.event.summary || data.event.title,
+    };
+
+    return (
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <EventDetailView data={data} />
+      </>
+    );
   } catch (error) {
     notFound();
   }

@@ -15,6 +15,11 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [draftCount, setDraftCount] = useState(0);
+  const [error, setError] = useState<Error | null>(null);
+
+  if (error) {
+    throw error;
+  }
 
   const fetchEvents = useCallback(async (reset = false) => {
     if (reset) {
@@ -39,8 +44,8 @@ export default function Dashboard() {
       
       setNextCursor(result.next_cursor || null);
       setHasNext(result.has_next);
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      setError(e);
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
@@ -51,8 +56,8 @@ export default function Dashboard() {
     try {
       const res = await appsEventsCreatorRoutersGetDraftsCount();
       setDraftCount(res.count);
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      setError(e);
     }
   };
 
