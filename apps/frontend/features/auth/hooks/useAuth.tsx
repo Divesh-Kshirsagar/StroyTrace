@@ -9,7 +9,6 @@ import {
   appsUsersRoutersMe 
 } from '@/generated/services.gen';
 import type { LoginRequest, RegisterRequest, UserSchema, CreatorProfileSchema } from '@/generated/types.gen';
-import { OpenAPI } from '@/shared/lib/apiClient';
 
 interface AuthContextType {
   user: UserSchema | null;

@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { appsEventsRoutersSearchEvents } from '@/generated';
+import '@/shared/lib/apiClient';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://clarity.com';

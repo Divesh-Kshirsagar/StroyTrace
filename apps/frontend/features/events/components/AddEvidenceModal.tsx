@@ -1,5 +1,4 @@
 'use client';
-import { useState } from 'react';
 import { useEditor } from '../context/EditorContext';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -15,7 +14,7 @@ type FormValues = z.infer<typeof evidenceSchema>;
 export default function AddEvidenceModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const { addEvidenceToQueue } = useEditor();
   
-  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(evidenceSchema),
     defaultValues: {
       mediaType: 'youtube',

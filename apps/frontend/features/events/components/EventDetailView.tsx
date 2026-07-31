@@ -2,7 +2,6 @@ import { EventFullSchema } from '@/generated';
 import NarrativeRenderer from './NarrativeRenderer';
 import EvidenceBoard from './EvidenceBoard';
 import CreatorBadge from '@/shared/components/CreatorBadge';
-import TopicBadge from '@/shared/components/TopicBadge';
 
 interface EventDetailViewProps {
   data: EventFullSchema;

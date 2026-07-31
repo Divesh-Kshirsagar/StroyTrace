@@ -17,7 +17,7 @@ export default function EventRow({ event, onUpdate }: EventRowProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [, setIsUpdating] = useState(false);
 
   const handleStatusChange = async (newStatus: string) => {
     try {

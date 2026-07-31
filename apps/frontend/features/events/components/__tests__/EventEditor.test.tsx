@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 
 // Assuming there's a simple component to test, for now let's just create a dummy test to verify Vitest works
 describe('EventEditor', () => {

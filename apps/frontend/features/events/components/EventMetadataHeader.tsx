@@ -1,5 +1,4 @@
 'use client';
-import { useState } from 'react';
 import { useEditor } from '../context/EditorContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';

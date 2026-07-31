@@ -5,7 +5,6 @@ import EventRow from './EventRow';
 import LoadMoreButton from '@/shared/components/LoadMoreButton';
 import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import Link from 'next/link';
-import { Button } from '@/shared/components/ui/button';
 
 export default function Dashboard() {
   const [statusFilter, setStatusFilter] = useState<string>('all');

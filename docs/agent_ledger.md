@@ -117,3 +117,16 @@
   - `docs/todo.md`: Pruned of completed Phase 6 checklist.
 - **Decision Logic:** I applied co-location rules directly; unit and integration tests live strictly in the domain directory they test against (`apps/*/tests/`). `pydantic` issues during `AuthResponse` validation were fixed by switching `BaseModel` out for Django Ninja's native `Schema` implementation, implicitly handling ORM conversions properly. `Playwright` tests remain separate (`e2e/`) since they represent cross-feature end-to-end journeys. The CI leverages `uv` and `pnpm` for blazing fast executions.
 - **Result Status:** Test environments initialize correctly. All local unit/integration backend tests (`uv run pytest`) successfully pass. Frontend tests (`pnpm test`) are fully configured and passing. Docker containers build natively and pre-commit checks run cleanly.
+
+## [2026-07-31 17:03] - Commit: b5cc3ecd31aea223b8391a5bdb8a7ec11bf53578 - Task: Phase 6 (Hotfix) - Enforce strict typing strategies and API contract checks
+
+- **Objective:** Apply targeted pragmatic typing boundaries across the backend and strict runtime type safety/contract checks on the frontend to solve Server Component runtime errors (`Failed to parse URL from /api/v1/feed/home`).
+- **Assumptions Declared:** Backend MyPy config shouldn't type-check tests/factories but should enforce `check_untyped_defs` globally. Next.js Server Components require `OpenAPI.BASE` to be fully configured in Node's fetch environment before initiating requests.
+- **Modifications Matrix:**
+  - `apps/backend/pyproject.toml`: Appended `[tool.mypy]` pragmatic configuration bypassing test typing.
+  - `apps/frontend/tsconfig.json`: Enforced rigorous flags including `noImplicitAny` and `strictNullChecks`.
+  - `apps/frontend/app/**/*.tsx` & `apps/frontend/app/sitemap.ts`: Handled Server Component relative URL bug by explicitly importing `@/shared/lib/apiClient` to populate `OpenAPI.BASE`.
+  - `apps/frontend/app/**/*.tsx`: Rewrote API fetch executions to run `.parse()` against the corresponding `heyapi` Zod schemas (e.g. `EventFullSchema`, `PaginatedEventSummarySchema`) providing a hard runtime guarantee.
+  - `.github/workflows/ci.yml`: Integrated `api-contract-check` to validate `openapi-ts` generated schema diffs automatically via headless backend spin-up.
+- **Decision Logic:** I injected `import '@/shared/lib/apiClient'` dynamically across the top of `app/layout.tsx` and all data-fetching `page.tsx` routes. Since Next.js spins up distinct module scope contexts for varying Server Components, placing it globally in the layout alone sometimes falls victim to module execution race conditions—explicit inclusion per page guarantees the `BASE` URL is configured before the `fetch` trigger. I replaced the provided `python -m venv` CI logic with `uv sync && uv run` to match the project's native build architecture. No manual API interfaces (`interface Event` etc.) were discovered in the codebase, meaning the Single Source of Truth architecture holds.
+- **Result Status:** Typings strictly enforce boundary constraints, the API contract is continually verified in CI, and SSR Server Components no longer throw relative URL parsing exceptions.

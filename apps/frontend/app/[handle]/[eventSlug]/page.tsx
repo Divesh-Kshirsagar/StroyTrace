@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { appsEventsRoutersGetEvent } from '@/generated';
 import EventDetailView from '@/features/events/components/EventDetailView';
+import '@/shared/lib/apiClient';
 
 interface PageProps {
   params: {
@@ -22,10 +23,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const description = event.summary?.substring(0, 160) || `A detailed investigation into ${event.title}...`;
     
     // Find primary thumbnail
-    const firstEvidenceWithThumbnail = data.evidence?.find(e => e.thumbnail_url);
-    const ogImage = firstEvidenceWithThumbnail?.thumbnail_url || '/og-default.png';
     const canonicalUrl = `https://clarity.com/${params.handle}/${params.eventSlug}`;
 
+    const firstEvidenceWithThumbnail = data.evidence?.find(e => e.thumbnail_url);
+    const ogImage = firstEvidenceWithThumbnail?.thumbnail_url || '/og-default.png';
     return {
       title,
       description,
@@ -55,9 +56,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function EventPage({ params }: PageProps) {
   try {
-    const data = await appsEventsRoutersGetEvent({ slug: params.eventSlug } as any);
-    const canonicalUrl = `https://clarity.com/${params.handle}/${params.eventSlug}`;
-    
+    const data = await appsEventsRoutersGetEvent({ slug: params.eventSlug } as any);    
     const jsonLd = {
       "@context": "https://schema.org",
       "@type": "NewsArticle",

@@ -3,7 +3,7 @@ import { Button } from '@/shared/components/ui/button';
 import { useEditor } from '../context/EditorContext';
 
 export default function EditorActionBar({ onPublish }: { onPublish: () => void }) {
-  const { isPublishing, error, narrative, evidenceIsDirty } = useEditor();
+  const { isPublishing, narrative, evidenceIsDirty } = useEditor();
   const isDirty = narrative.isDirty || evidenceIsDirty;
 
   return (

@@ -1,5 +1,6 @@
 import { appsTopicsRoutersListTopics } from '@/generated';
 import Link from 'next/link';
+import '@/shared/lib/apiClient';
 import { Card } from '@/shared/components/ui/card';
 
 export const dynamic = 'force-dynamic';

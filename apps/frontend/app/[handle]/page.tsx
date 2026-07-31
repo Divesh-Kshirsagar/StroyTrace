@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { appsFeedsRoutersChannelFeed, appsUsersRoutersGetChannel } from '@/generated';
 import FeedView from '@/features/feeds/components/FeedView';
-import CreatorBadge from '@/shared/components/CreatorBadge';
+import '@/shared/lib/apiClient';
 import TopicCurationSection from '@/features/channels/components/TopicCurationSection';
 import SubscribeForm from '@/features/channels/components/SubscribeForm';
 
@@ -34,15 +34,9 @@ export default async function ChannelPage({ params }: PageProps) {
     
     async function fetchNextPage(cursor: string) {
       'use server';
-      return appsFeedsRoutersChannelFeed({ handle: cleanHandle, query: { cursor } } as any);
+      const response = await appsFeedsRoutersChannelFeed({ handle: cleanHandle, query: { cursor } } as any);
+      return response;
     }
-    
-    const creator = {
-      handle: cleanHandle,
-      display_name: cleanHandle,
-      avatar_url: null
-    };
-
     return (
       <main>
         <div className="max-w-7xl mx-auto px-4 py-8 border-b border-zinc-200 dark:border-zinc-800">

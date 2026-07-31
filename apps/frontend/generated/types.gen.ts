@@ -10,9 +10,9 @@ export type CreatorProfileSchema = {
     id: string;
     handle: string;
     display_name: string;
-    bio?: string | null;
-    avatar_url?: string | null;
-    banner_url?: string | null;
+    bio?: (string | null);
+    avatar_url?: (string | null);
+    banner_url?: (string | null);
     social_links: {
         [key: string]: unknown;
     };
@@ -70,16 +70,16 @@ export type TopicCurationSchema = {
 export type CreatorSummarySchema = {
     handle: string;
     display_name: string;
-    avatar_url?: string | null;
+    avatar_url?: (string | null);
 };
 
 export type EventSchema = {
     id: string;
     title: string;
     slug: string;
-    summary?: string | null;
+    summary?: (string | null);
     start_date: string;
-    end_date?: string | null;
+    end_date?: (string | null);
     status: string;
     created_at: string;
     updated_at: string;
@@ -89,9 +89,9 @@ export type EventSchema = {
 
 export type EventCreateSchema = {
     title: string;
-    summary?: string | null;
+    summary?: (string | null);
     start_date: string;
-    end_date?: string | null;
+    end_date?: (string | null);
     topic_slugs?: Array<(string)>;
 };
 
@@ -99,20 +99,20 @@ export type EventSummarySchema = {
     id: string;
     slug: string;
     title: string;
-    summary?: string | null;
+    summary?: (string | null);
     start_date: string;
     status: string;
     lead_investigator: CreatorSummarySchema;
-    primary_topic?: TopicSummarySchema | null;
+    primary_topic?: (TopicSummarySchema | null);
     evidence_count: number;
-    primary_thumbnail?: string | null;
+    primary_thumbnail?: (string | null);
     created_at: string;
 };
 
 export type PaginatedEventSummarySchema = {
     items: Array<EventSummarySchema>;
-    next_cursor?: string | null;
-    previous_cursor?: string | null;
+    next_cursor?: (string | null);
+    previous_cursor?: (string | null);
     has_next: boolean;
 };
 
@@ -123,7 +123,7 @@ export type TopicSummarySchema = {
 
 export type EventFullSchema = {
     event: EventSchema;
-    narrative?: NarrativeSchema | null;
+    narrative?: (NarrativeSchema | null);
     evidence: Array<EvidenceSchema>;
 };
 
@@ -131,8 +131,8 @@ export type EvidenceSchema = {
     id: string;
     media_type: string;
     source_url: string;
-    thumbnail_url?: string | null;
-    caption?: string | null;
+    thumbnail_url?: (string | null);
+    caption?: (string | null);
     display_order: number;
     created_at: string;
 };
@@ -146,11 +146,11 @@ export type NarrativeSchema = {
 };
 
 export type EventUpdateSchema = {
-    title?: string | null;
-    summary?: string | null;
-    start_date?: string | null;
-    end_date?: string | null;
-    status?: string | null;
+    title?: (string | null);
+    summary?: (string | null);
+    start_date?: (string | null);
+    end_date?: (string | null);
+    status?: (string | null);
 };
 
 export type MessageSchema = {
@@ -159,20 +159,20 @@ export type MessageSchema = {
 
 export type NarrativeCreateUpdateSchema = {
     content: string;
-    is_published?: boolean | null;
+    is_published?: (boolean | null);
 };
 
 export type EvidenceCreateSchema = {
     media_type: string;
     source_url: string;
-    thumbnail_url?: string | null;
-    caption?: string | null;
-    display_order?: number | null;
+    thumbnail_url?: (string | null);
+    caption?: (string | null);
+    display_order?: (number | null);
 };
 
 export type EvidenceUpdateSchema = {
-    caption?: string | null;
-    display_order?: number | null;
+    caption?: (string | null);
+    display_order?: (number | null);
 };
 
 export type EventStatusUpdateSchema = {
@@ -191,106 +191,106 @@ export type AppsUsersRoutersRegisterData = {
     requestBody: RegisterRequest;
 };
 
-export type AppsUsersRoutersRegisterResponse = AuthResponse;
+export type AppsUsersRoutersRegisterResponse = (AuthResponse);
 
 export type AppsUsersRoutersLoginData = {
     requestBody: LoginRequest;
 };
 
-export type AppsUsersRoutersLoginResponse = AuthResponse;
+export type AppsUsersRoutersLoginResponse = (AuthResponse);
 
 export type AppsUsersRoutersRefreshData = {
     requestBody: RefreshRequest;
 };
 
-export type AppsUsersRoutersRefreshResponse = RefreshResponse;
+export type AppsUsersRoutersRefreshResponse = (RefreshResponse);
 
 export type AppsUsersRoutersLogoutData = {
     requestBody: LogoutRequest;
 };
 
-export type AppsUsersRoutersLogoutResponse = MessageResponse;
+export type AppsUsersRoutersLogoutResponse = (MessageResponse);
 
-export type AppsUsersRoutersMeResponse = UserSchema;
+export type AppsUsersRoutersMeResponse = (UserSchema);
 
-export type AppsUsersRoutersMyChannelResponse = UserSchema;
+export type AppsUsersRoutersMyChannelResponse = (UserSchema);
 
 export type AppsUsersRoutersGetChannelData = {
     handle: string;
 };
 
-export type AppsUsersRoutersGetChannelResponse = CreatorProfileSchema;
+export type AppsUsersRoutersGetChannelResponse = (CreatorProfileSchema);
 
-export type AppsUsersRoutersGetMyTopicsResponse = Array<TopicSchema>;
+export type AppsUsersRoutersGetMyTopicsResponse = (Array<TopicSchema>);
 
 export type AppsUsersRoutersSetMyTopicsData = {
     requestBody: TopicCurationSchema;
 };
 
-export type AppsUsersRoutersSetMyTopicsResponse = MessageResponse;
+export type AppsUsersRoutersSetMyTopicsResponse = (MessageResponse);
 
-export type AppsTopicsRoutersListTopicsResponse = Array<TopicSchema>;
+export type AppsTopicsRoutersListTopicsResponse = (Array<TopicSchema>);
 
 export type AppsEventsRoutersCreateEventData = {
     requestBody: EventCreateSchema;
 };
 
-export type AppsEventsRoutersCreateEventResponse = EventSchema;
+export type AppsEventsRoutersCreateEventResponse = (EventSchema);
 
 export type AppsEventsRoutersSearchEventsData = {
-    cursor?: string | null;
+    cursor?: (string | null);
     limit?: number;
     q?: string;
     status?: string;
     topic?: string;
 };
 
-export type AppsEventsRoutersSearchEventsResponse = PaginatedEventSummarySchema;
+export type AppsEventsRoutersSearchEventsResponse = (PaginatedEventSummarySchema);
 
 export type AppsEventsRoutersGetEventData = {
     slug: string;
 };
 
-export type AppsEventsRoutersGetEventResponse = EventFullSchema;
+export type AppsEventsRoutersGetEventResponse = (EventFullSchema);
 
 export type AppsEventsRoutersUpdateEventData = {
     requestBody: EventUpdateSchema;
     slug: string;
 };
 
-export type AppsEventsRoutersUpdateEventResponse = EventSchema;
+export type AppsEventsRoutersUpdateEventResponse = (EventSchema);
 
 export type AppsEventsRoutersDeleteEventData = {
     slug: string;
 };
 
-export type AppsEventsRoutersDeleteEventResponse = MessageSchema;
+export type AppsEventsRoutersDeleteEventResponse = (MessageSchema);
 
 export type AppsEventsRoutersUpdateNarrativeData = {
     requestBody: NarrativeCreateUpdateSchema;
     slug: string;
 };
 
-export type AppsEventsRoutersUpdateNarrativeResponse = NarrativeSchema;
+export type AppsEventsRoutersUpdateNarrativeResponse = (NarrativeSchema);
 
 export type AppsEventsRoutersGetNarrativeData = {
     slug: string;
 };
 
-export type AppsEventsRoutersGetNarrativeResponse = NarrativeSchema;
+export type AppsEventsRoutersGetNarrativeResponse = (NarrativeSchema);
 
 export type AppsEventsRoutersCreateEvidenceData = {
     requestBody: EvidenceCreateSchema;
     slug: string;
 };
 
-export type AppsEventsRoutersCreateEvidenceResponse = EvidenceSchema;
+export type AppsEventsRoutersCreateEvidenceResponse = (EvidenceSchema);
 
 export type AppsEventsRoutersListEvidenceData = {
     slug: string;
 };
 
-export type AppsEventsRoutersListEvidenceResponse = Array<EvidenceSchema>;
+export type AppsEventsRoutersListEvidenceResponse = (Array<EvidenceSchema>);
 
 export type AppsEventsRoutersUpdateEvidenceData = {
     evidenceId: string;
@@ -298,58 +298,58 @@ export type AppsEventsRoutersUpdateEvidenceData = {
     slug: string;
 };
 
-export type AppsEventsRoutersUpdateEvidenceResponse = EvidenceSchema;
+export type AppsEventsRoutersUpdateEvidenceResponse = (EvidenceSchema);
 
 export type AppsEventsRoutersDeleteEvidenceData = {
     evidenceId: string;
     slug: string;
 };
 
-export type AppsEventsRoutersDeleteEvidenceResponse = MessageSchema;
+export type AppsEventsRoutersDeleteEvidenceResponse = (MessageSchema);
 
 export type AppsEventsRoutersUpdateEventStatusData = {
     requestBody: EventStatusUpdateSchema;
     slug: string;
 };
 
-export type AppsEventsRoutersUpdateEventStatusResponse = EventSchema;
+export type AppsEventsRoutersUpdateEventStatusResponse = (EventSchema);
 
 export type AppsEventsRoutersReorderEvidenceData = {
     requestBody: EvidenceReorderSchema;
     slug: string;
 };
 
-export type AppsEventsRoutersReorderEvidenceResponse = MessageSchema;
+export type AppsEventsRoutersReorderEvidenceResponse = (MessageSchema);
 
 export type AppsEventsCreatorRoutersListCreatorEventsData = {
-    cursor?: string | null;
+    cursor?: (string | null);
     limit?: number;
-    status?: string | null;
+    status?: (string | null);
 };
 
-export type AppsEventsCreatorRoutersListCreatorEventsResponse = PaginatedEventSummarySchema;
+export type AppsEventsCreatorRoutersListCreatorEventsResponse = (PaginatedEventSummarySchema);
 
-export type AppsEventsCreatorRoutersGetDraftsCountResponse = DraftsCountSchema;
+export type AppsEventsCreatorRoutersGetDraftsCountResponse = (DraftsCountSchema);
 
 export type AppsFeedsRoutersHomeFeedData = {
-    cursor?: string | null;
+    cursor?: (string | null);
     limit?: number;
 };
 
-export type AppsFeedsRoutersHomeFeedResponse = PaginatedEventSummarySchema;
+export type AppsFeedsRoutersHomeFeedResponse = (PaginatedEventSummarySchema);
 
 export type AppsFeedsRoutersTopicFeedData = {
-    cursor?: string | null;
+    cursor?: (string | null);
     limit?: number;
     slug: string;
 };
 
-export type AppsFeedsRoutersTopicFeedResponse = PaginatedEventSummarySchema;
+export type AppsFeedsRoutersTopicFeedResponse = (PaginatedEventSummarySchema);
 
 export type AppsFeedsRoutersChannelFeedData = {
-    cursor?: string | null;
+    cursor?: (string | null);
     handle: string;
     limit?: number;
 };
 
-export type AppsFeedsRoutersChannelFeedResponse = PaginatedEventSummarySchema;
+export type AppsFeedsRoutersChannelFeedResponse = (PaginatedEventSummarySchema);

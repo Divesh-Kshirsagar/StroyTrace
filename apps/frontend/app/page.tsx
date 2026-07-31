@@ -1,12 +1,14 @@
 import { appsFeedsRoutersHomeFeed } from '@/generated';
 import FeedView from '@/features/feeds/components/FeedView';
+import '@/shared/lib/apiClient';
 
 // Revalidate occasionally, or keep it dynamic depending on Next.js setup
 export const dynamic = 'force-dynamic';
 
 async function fetchNextPage(cursor: string) {
   'use server';
-  return appsFeedsRoutersHomeFeed({ cursor } as any);
+  const response = await appsFeedsRoutersHomeFeed({ cursor } as any);
+  return response;
 }
 
 export default async function HomePage() {

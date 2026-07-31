@@ -94,8 +94,8 @@ importers:
         specifier: ^0.1.0
         version: 0.1.0
       '@hey-api/openapi-ts':
-        specifier: ^0.52.8
-        version: 0.52.8(typescript@5.9.3)
+        specifier: ^0.52.11
+        version: 0.52.11(typescript@5.9.3)
       '@playwright/test':
         specifier: ^1.62.0
         version: 1.62.0
@@ -482,8 +482,8 @@ packages:
     resolution: {integrity: sha512-YLJGrFJ4Jkahcz5Jl7ycoZPLkpvUhHPuBw1miOIJ4LOqUMEJscOobhOJmCXCRImAuu+NAb7Lk8hn63S9cqrJeA==}
     deprecated: Starting with v0.73.0, this package is bundled directly inside @hey-api/openapi-ts.
 
-  '@hey-api/openapi-ts@0.52.8':
-    resolution: {integrity: sha512-OKSHz3083Qnxn+RyPwRzCFjmeN3ZPmSw8aEWwsKyeVU1vik4H1MBfuFDiIP7luf929AYEN3nLA2mrr9wVRENnw==}
+  '@hey-api/openapi-ts@0.52.11':
+    resolution: {integrity: sha512-S3NrCQDxy7AtW5sx8OVoBaqpaYNqYsD0y6YNwhUXPUahbrW7Wxm/N4RIEsRtXVbcjUqdAjo1FmFmeyEKYziJkw==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
     peerDependencies:
@@ -4520,7 +4520,7 @@ snapshots:
 
   '@hey-api/client-fetch@0.1.0': {}
 
-  '@hey-api/openapi-ts@0.52.8(typescript@5.9.3)':
+  '@hey-api/openapi-ts@0.52.11(typescript@5.9.3)':
     dependencies:
       '@apidevtools/json-schema-ref-parser': 11.7.0
       c12: 1.11.1

@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { appsFeedsRoutersTopicFeed } from '@/generated';
 import FeedView from '@/features/feeds/components/FeedView';
+import '@/shared/lib/apiClient';
 
 interface PageProps {
   params: {
@@ -26,7 +27,8 @@ export default async function TopicPage({ params }: PageProps) {
     
     async function fetchNextPage(cursor: string) {
       'use server';
-      return appsFeedsRoutersTopicFeed({ slug: params.slug, query: { cursor } } as any);
+      const response = await appsFeedsRoutersTopicFeed({ slug: params.slug, query: { cursor } } as any);
+      return response;
     }
     
     const name = params.slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');

@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { appsEventsRoutersGetEvent } from '@/generated';
 import EventEditorPage from '@/features/events/components/EventEditorPage';
+import '@/shared/lib/apiClient';
 
 export const metadata: Metadata = {
   title: 'Edit Event - Clarity',
