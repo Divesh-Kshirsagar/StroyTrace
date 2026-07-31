@@ -24,3 +24,30 @@
   - `apps/frontend/features/auth/schemas.ts`: Exported Zod schemas.
 - **Decision Logic:** The `refresh_token` flow is implemented by explicitly passing the token from `js-cookie` since it was requested as an HttpOnly cookie originally but required in the body for the API endpoint. We opted for a regular cookie to satisfy the body requirement while preserving the token across tabs.
 - **Result Status:** All migrations applied. API checks passed. HeyAPI successfully re-generated the SDK.
+
+## [2026-07-31 14:24] - Commit: pending - Task: Phase 1 Auth UI Implementation
+
+- **Objective:** Build the frontend Auth UI (`LoginForm`, `RegisterForm`) and the corresponding route pages based on the Phase 1 specification using shadcn/ui.
+- **Assumptions Declared:** Used `react-hook-form` and `zod` for strictly typed client-side validation. Extracted forms into `features/auth/components` as per architecture rules.
+- **Modifications Matrix:**
+  - `apps/frontend/shared/components/ui/*`: Added shadcn `form`, `input`, `button`, `card`, `label`, `field`.
+  - `apps/frontend/features/auth/components/LoginForm.tsx`: Built the login UI.
+  - `apps/frontend/features/auth/components/RegisterForm.tsx`: Built the registration UI.
+  - `apps/frontend/app/(auth)/*`: Configured the Next.js App Router for auth pages (`layout.tsx`, `login/page.tsx`, `register/page.tsx`).
+  - `apps/frontend/app/layout.tsx`: Wrapped the root layout in `<AuthProvider>`.
+- **Decision Logic:** The `features` structure strictly separates routing logic from UI implementation. The forms bind directly to the `useAuth` hooks for clean separation.
+- **Result Status:** Auth forms implemented. Frontend UI fully connected to the backend auth endpoints.
+
+## [2026-07-31 14:44] - Commit: pending - Task: Phase 2 Core Domain Implementation
+
+- **Objective:** Build the core database structures (Event, Narrative, Evidence), corresponding API endpoints with permissions, and the Event Editor UI.
+- **Assumptions Declared:** Used TipTap for rich text editing to cleanly isolate HTML generation without media injection. Used Django's ManyToMany for topics.
+- **Modifications Matrix:**
+  - `apps/backend/apps/events/models.py`: Created Event, Narrative, Evidence models.
+  - `apps/backend/apps/topics/models.py`: Created Topic model.
+  - `apps/backend/apps/events/schemas.py`, `routers.py`: Defined schema contracts and REST endpoints for creating/updating shells, narratives, and evidence items.
+  - `apps/frontend/features/events/context/EditorContext.tsx`: Built state manager orchestrator for saving Event -> Narrative -> Evidence.
+  - `apps/frontend/features/events/components/*`: Created EventEditorPage, Metadata Header, Narrative Panel, Evidence Panel, Add Evidence Modal.
+  - `apps/frontend/app/editor/*`: Next.js pages for new and editing events.
+- **Decision Logic:** Used React Context (`EditorContext`) because the UI requires complex state coordination across deeply nested sibling components (Metadata vs Narrative vs Evidence Panels). Media uploads are strictly isolated to Evidence objects as requested by architecture specs. 
+- **Result Status:** Backend DB schema active and API passing checks. SDK successfully regenerated via HeyAPI. Frontend UI typechecks successfully (excluding internal Next.js `validator.ts` cache bug).

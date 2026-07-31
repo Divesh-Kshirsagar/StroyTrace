@@ -207,3 +207,436 @@ export const $LogoutRequest = {
     title: 'LogoutRequest',
     type: 'object'
 } as const;
+
+export const $TopicSchema = {
+    properties: {
+        id: {
+            format: 'uuid',
+            title: 'Id',
+            type: 'string'
+        },
+        name: {
+            title: 'Name',
+            type: 'string'
+        },
+        slug: {
+            title: 'Slug',
+            type: 'string'
+        },
+        description: {
+            title: 'Description',
+            type: 'string'
+        }
+    },
+    required: ['id', 'name', 'slug', 'description'],
+    title: 'TopicSchema',
+    type: 'object'
+} as const;
+
+export const $EventSchema = {
+    properties: {
+        id: {
+            format: 'uuid',
+            title: 'Id',
+            type: 'string'
+        },
+        title: {
+            title: 'Title',
+            type: 'string'
+        },
+        slug: {
+            title: 'Slug',
+            type: 'string'
+        },
+        summary: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Summary'
+        },
+        start_date: {
+            format: 'date',
+            title: 'Start Date',
+            type: 'string'
+        },
+        end_date: {
+            anyOf: [
+                {
+                    format: 'date',
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'End Date'
+        },
+        status: {
+            title: 'Status',
+            type: 'string'
+        },
+        created_at: {
+            format: 'date-time',
+            title: 'Created At',
+            type: 'string'
+        },
+        updated_at: {
+            format: 'date-time',
+            title: 'Updated At',
+            type: 'string'
+        },
+        topics: {
+            items: {
+                '$ref': '#/components/schemas/TopicSchema'
+            },
+            title: 'Topics',
+            type: 'array'
+        }
+    },
+    required: ['id', 'title', 'slug', 'start_date', 'status', 'created_at', 'updated_at', 'topics'],
+    title: 'EventSchema',
+    type: 'object'
+} as const;
+
+export const $EventCreateSchema = {
+    properties: {
+        title: {
+            title: 'Title',
+            type: 'string'
+        },
+        summary: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Summary'
+        },
+        start_date: {
+            format: 'date',
+            title: 'Start Date',
+            type: 'string'
+        },
+        end_date: {
+            anyOf: [
+                {
+                    format: 'date',
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'End Date'
+        },
+        topic_slugs: {
+            default: [],
+            items: {
+                type: 'string'
+            },
+            title: 'Topic Slugs',
+            type: 'array'
+        }
+    },
+    required: ['title', 'start_date'],
+    title: 'EventCreateSchema',
+    type: 'object'
+} as const;
+
+export const $EventFullSchema = {
+    properties: {
+        event: {
+            '$ref': '#/components/schemas/EventSchema'
+        },
+        narrative: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/NarrativeSchema'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        evidence: {
+            items: {
+                '$ref': '#/components/schemas/EvidenceSchema'
+            },
+            title: 'Evidence',
+            type: 'array'
+        }
+    },
+    required: ['event', 'evidence'],
+    title: 'EventFullSchema',
+    type: 'object'
+} as const;
+
+export const $EvidenceSchema = {
+    properties: {
+        id: {
+            format: 'uuid',
+            title: 'Id',
+            type: 'string'
+        },
+        media_type: {
+            title: 'Media Type',
+            type: 'string'
+        },
+        source_url: {
+            title: 'Source Url',
+            type: 'string'
+        },
+        thumbnail_url: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Thumbnail Url'
+        },
+        caption: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Caption'
+        },
+        display_order: {
+            title: 'Display Order',
+            type: 'integer'
+        },
+        created_at: {
+            format: 'date-time',
+            title: 'Created At',
+            type: 'string'
+        }
+    },
+    required: ['id', 'media_type', 'source_url', 'display_order', 'created_at'],
+    title: 'EvidenceSchema',
+    type: 'object'
+} as const;
+
+export const $NarrativeSchema = {
+    properties: {
+        id: {
+            format: 'uuid',
+            title: 'Id',
+            type: 'string'
+        },
+        content: {
+            title: 'Content',
+            type: 'string'
+        },
+        is_published: {
+            title: 'Is Published',
+            type: 'boolean'
+        },
+        created_at: {
+            format: 'date-time',
+            title: 'Created At',
+            type: 'string'
+        },
+        updated_at: {
+            format: 'date-time',
+            title: 'Updated At',
+            type: 'string'
+        }
+    },
+    required: ['id', 'content', 'is_published', 'created_at', 'updated_at'],
+    title: 'NarrativeSchema',
+    type: 'object'
+} as const;
+
+export const $EventUpdateSchema = {
+    properties: {
+        title: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Title'
+        },
+        summary: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Summary'
+        },
+        start_date: {
+            anyOf: [
+                {
+                    format: 'date',
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Start Date'
+        },
+        end_date: {
+            anyOf: [
+                {
+                    format: 'date',
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'End Date'
+        },
+        status: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Status'
+        }
+    },
+    title: 'EventUpdateSchema',
+    type: 'object'
+} as const;
+
+export const $MessageSchema = {
+    properties: {
+        message: {
+            title: 'Message',
+            type: 'string'
+        }
+    },
+    required: ['message'],
+    title: 'MessageSchema',
+    type: 'object'
+} as const;
+
+export const $NarrativeCreateUpdateSchema = {
+    properties: {
+        content: {
+            title: 'Content',
+            type: 'string'
+        },
+        is_published: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            default: false,
+            title: 'Is Published'
+        }
+    },
+    required: ['content'],
+    title: 'NarrativeCreateUpdateSchema',
+    type: 'object'
+} as const;
+
+export const $EvidenceCreateSchema = {
+    properties: {
+        media_type: {
+            title: 'Media Type',
+            type: 'string'
+        },
+        source_url: {
+            title: 'Source Url',
+            type: 'string'
+        },
+        thumbnail_url: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Thumbnail Url'
+        },
+        caption: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Caption'
+        },
+        display_order: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            default: 0,
+            title: 'Display Order'
+        }
+    },
+    required: ['media_type', 'source_url'],
+    title: 'EvidenceCreateSchema',
+    type: 'object'
+} as const;
+
+export const $EvidenceUpdateSchema = {
+    properties: {
+        caption: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Caption'
+        },
+        display_order: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Display Order'
+        }
+    },
+    title: 'EvidenceUpdateSchema',
+    type: 'object'
+} as const;

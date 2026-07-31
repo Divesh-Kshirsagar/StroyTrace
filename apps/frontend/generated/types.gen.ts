@@ -55,6 +55,88 @@ export type LogoutRequest = {
     refresh_token: string;
 };
 
+export type TopicSchema = {
+    id: string;
+    name: string;
+    slug: string;
+    description: string;
+};
+
+export type EventSchema = {
+    id: string;
+    title: string;
+    slug: string;
+    summary?: string | null;
+    start_date: string;
+    end_date?: string | null;
+    status: string;
+    created_at: string;
+    updated_at: string;
+    topics: Array<TopicSchema>;
+};
+
+export type EventCreateSchema = {
+    title: string;
+    summary?: string | null;
+    start_date: string;
+    end_date?: string | null;
+    topic_slugs?: Array<(string)>;
+};
+
+export type EventFullSchema = {
+    event: EventSchema;
+    narrative?: NarrativeSchema | null;
+    evidence: Array<EvidenceSchema>;
+};
+
+export type EvidenceSchema = {
+    id: string;
+    media_type: string;
+    source_url: string;
+    thumbnail_url?: string | null;
+    caption?: string | null;
+    display_order: number;
+    created_at: string;
+};
+
+export type NarrativeSchema = {
+    id: string;
+    content: string;
+    is_published: boolean;
+    created_at: string;
+    updated_at: string;
+};
+
+export type EventUpdateSchema = {
+    title?: string | null;
+    summary?: string | null;
+    start_date?: string | null;
+    end_date?: string | null;
+    status?: string | null;
+};
+
+export type MessageSchema = {
+    message: string;
+};
+
+export type NarrativeCreateUpdateSchema = {
+    content: string;
+    is_published?: boolean | null;
+};
+
+export type EvidenceCreateSchema = {
+    media_type: string;
+    source_url: string;
+    thumbnail_url?: string | null;
+    caption?: string | null;
+    display_order?: number | null;
+};
+
+export type EvidenceUpdateSchema = {
+    caption?: string | null;
+    display_order?: number | null;
+};
+
 export type AppsUsersRoutersRegisterData = {
     requestBody: RegisterRequest;
 };
@@ -83,8 +165,78 @@ export type AppsUsersRoutersMeResponse = UserSchema;
 
 export type AppsUsersRoutersMyChannelResponse = UserSchema;
 
-export type AppsTopicsRoutersListTopicsResponse = unknown;
+export type AppsTopicsRoutersListTopicsResponse = Array<TopicSchema>;
 
-export type AppsEventsRoutersListEventsResponse = unknown;
+export type AppsEventsRoutersCreateEventData = {
+    requestBody: EventCreateSchema;
+};
+
+export type AppsEventsRoutersCreateEventResponse = EventSchema;
+
+export type AppsEventsRoutersSearchEventsData = {
+    q?: string;
+};
+
+export type AppsEventsRoutersSearchEventsResponse = Array<EventSchema>;
+
+export type AppsEventsRoutersGetEventData = {
+    slug: string;
+};
+
+export type AppsEventsRoutersGetEventResponse = EventFullSchema;
+
+export type AppsEventsRoutersUpdateEventData = {
+    requestBody: EventUpdateSchema;
+    slug: string;
+};
+
+export type AppsEventsRoutersUpdateEventResponse = EventSchema;
+
+export type AppsEventsRoutersDeleteEventData = {
+    slug: string;
+};
+
+export type AppsEventsRoutersDeleteEventResponse = MessageSchema;
+
+export type AppsEventsRoutersUpdateNarrativeData = {
+    requestBody: NarrativeCreateUpdateSchema;
+    slug: string;
+};
+
+export type AppsEventsRoutersUpdateNarrativeResponse = NarrativeSchema;
+
+export type AppsEventsRoutersGetNarrativeData = {
+    slug: string;
+};
+
+export type AppsEventsRoutersGetNarrativeResponse = NarrativeSchema;
+
+export type AppsEventsRoutersCreateEvidenceData = {
+    requestBody: EvidenceCreateSchema;
+    slug: string;
+};
+
+export type AppsEventsRoutersCreateEvidenceResponse = EvidenceSchema;
+
+export type AppsEventsRoutersListEvidenceData = {
+    slug: string;
+};
+
+export type AppsEventsRoutersListEvidenceResponse = Array<EvidenceSchema>;
+
+export type AppsEventsRoutersUpdateEvidenceData = {
+    evidenceId: string;
+    requestBody: EvidenceUpdateSchema;
+    slug: string;
+};
+
+export type AppsEventsRoutersUpdateEvidenceResponse = EvidenceSchema;
+
+export type AppsEventsRoutersDeleteEvidenceData = {
+    evidenceId: string;
+    slug: string;
+};
+
+export type AppsEventsRoutersDeleteEvidenceResponse = MessageSchema;
 
 export type AppsFeedsRoutersHomeFeedResponse = unknown;
