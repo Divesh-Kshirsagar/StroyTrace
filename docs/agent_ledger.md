@@ -1,14 +1,11 @@
-## [2026-07-31 13:40] - Commit: pending - Task: Restructure Repositories for Domain & Feature Boundaries
+## [2026-07-31 13:52] - Commit: pending - Task: Setup HeyAPI Pipeline
 
-- **Objective:** Re-architect the backend and frontend into strict Domain-Driven and Feature-Driven structures, preparing for HeyAPI integration.
-- **Assumptions Declared:** Assuming it is safe to wipe the previous scaffolding `db.sqlite3` and migrations since no real data exists. 
+- **Objective:** Configure the HeyAPI and OpenAPI bridge between the Django Ninja backend and the Next.js frontend, per the architectural plan.
+- **Assumptions Declared:** Backend models and routers will use the `HttpBearer` auth scheme which HeyAPI will consume. Downgraded `openapi-ts` to v0.52 to ensure stable fetch generation.
 - **Modifications Matrix:**
-  - `apps/backend/api/` -> Split into `apps/users`, `apps/topics`, `apps/events`, `apps/feeds`.
-  - `apps/backend/core/` -> Renamed to `apps/backend/config/`. Restored `apps/backend/core/` for shared utilities.
-  - `apps/frontend/app/` -> Cleaned up, created `(auth)`, `(marketing)`, `[handle]/[eventSlug]`.
-  - `apps/frontend/features/` -> Initialized `auth`, `events`, `channels`.
-  - `apps/frontend/shared/` -> Initialized `components/ui`, `hooks`, `lib`, `styles`.
-  - `apps/frontend/components.json` -> Updated paths to use `@/shared/components`.
-  - `.agent-context.md` -> Added the "No Cross-Feature", "Thin App", and "Backend Boundary" rules.
-- **Decision Logic:** Used Python scripts via terminal to cleanly write and refactor the files. Re-ran migrations from scratch to ensure the database correctly recognizes the new app boundaries (`users_user`, `events_event`, etc.).
-- **Result Status:** Backend starts cleanly with 0 issues. Frontend directories perfectly mirror the requested strict feature module layout.
+  - `apps/frontend/openapi-ts.config.ts`: Added configuration to point to local `openapi.json`.
+  - `apps/frontend/package.json`: Added `generate:api`, `generate:api:prod`, and `typecheck` scripts.
+  - `apps/backend/config/api.py`: Configured `NinjaAPI` with standard OpenAPI metadata and `AuthBearer`.
+  - `apps/backend/apps/*/routers.py`: Created skeleton routers mapped to their domains (`auth`, `channels`, `topics`, `events`, `feeds`).
+- **Decision Logic:** I launched the backend server in the background and executed the `generate:api` script. The HeyAPI client successfully consumed the live `/api/v1/openapi.json` and outputted strictly typed SDKs into `generated/services.gen.ts`.
+- **Result Status:** The pipeline successfully generates fetch-based SDK clients and TypeScript types (`generated/types.gen.ts`), verifying the automated contract generation flow.

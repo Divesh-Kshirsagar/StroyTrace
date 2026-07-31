@@ -3,31 +3,82 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AppsUsersRoutersGetMeResponse, AppsUsersRoutersGetChannelData, AppsUsersRoutersGetChannelResponse, AppsTopicsRoutersListTopicsResponse, AppsEventsRoutersListEventsResponse, AppsFeedsRoutersHomeFeedResponse } from './types.gen';
+import type { AppsUsersRoutersRegisterData, AppsUsersRoutersRegisterResponse, AppsUsersRoutersLoginData, AppsUsersRoutersLoginResponse, AppsUsersRoutersRefreshData, AppsUsersRoutersRefreshResponse, AppsUsersRoutersLogoutData, AppsUsersRoutersLogoutResponse, AppsUsersRoutersMeResponse, AppsUsersRoutersMyChannelResponse, AppsTopicsRoutersListTopicsResponse, AppsEventsRoutersListEventsResponse, AppsFeedsRoutersHomeFeedResponse } from './types.gen';
 
 /**
- * Get Me
- * @returns unknown OK
+ * Register
+ * @param data The data for the request.
+ * @param data.requestBody
+ * @returns AuthResponse OK
  * @throws ApiError
  */
-export const appsUsersRoutersGetMe = (): CancelablePromise<AppsUsersRoutersGetMeResponse> => { return __request(OpenAPI, {
+export const appsUsersRoutersRegister = (data: AppsUsersRoutersRegisterData): CancelablePromise<AppsUsersRoutersRegisterResponse> => { return __request(OpenAPI, {
+    method: 'POST',
+    url: '/api/v1/auth/register',
+    body: data.requestBody,
+    mediaType: 'application/json'
+}); };
+
+/**
+ * Login
+ * @param data The data for the request.
+ * @param data.requestBody
+ * @returns AuthResponse OK
+ * @throws ApiError
+ */
+export const appsUsersRoutersLogin = (data: AppsUsersRoutersLoginData): CancelablePromise<AppsUsersRoutersLoginResponse> => { return __request(OpenAPI, {
+    method: 'POST',
+    url: '/api/v1/auth/login',
+    body: data.requestBody,
+    mediaType: 'application/json'
+}); };
+
+/**
+ * Refresh
+ * @param data The data for the request.
+ * @param data.requestBody
+ * @returns RefreshResponse OK
+ * @throws ApiError
+ */
+export const appsUsersRoutersRefresh = (data: AppsUsersRoutersRefreshData): CancelablePromise<AppsUsersRoutersRefreshResponse> => { return __request(OpenAPI, {
+    method: 'POST',
+    url: '/api/v1/auth/refresh',
+    body: data.requestBody,
+    mediaType: 'application/json'
+}); };
+
+/**
+ * Logout
+ * @param data The data for the request.
+ * @param data.requestBody
+ * @returns MessageResponse OK
+ * @throws ApiError
+ */
+export const appsUsersRoutersLogout = (data: AppsUsersRoutersLogoutData): CancelablePromise<AppsUsersRoutersLogoutResponse> => { return __request(OpenAPI, {
+    method: 'POST',
+    url: '/api/v1/auth/logout',
+    body: data.requestBody,
+    mediaType: 'application/json'
+}); };
+
+/**
+ * Me
+ * @returns UserSchema OK
+ * @throws ApiError
+ */
+export const appsUsersRoutersMe = (): CancelablePromise<AppsUsersRoutersMeResponse> => { return __request(OpenAPI, {
     method: 'GET',
     url: '/api/v1/auth/me'
 }); };
 
 /**
- * Get Channel
- * @param data The data for the request.
- * @param data.handle
- * @returns unknown OK
+ * My Channel
+ * @returns UserSchema OK
  * @throws ApiError
  */
-export const appsUsersRoutersGetChannel = (data: AppsUsersRoutersGetChannelData): CancelablePromise<AppsUsersRoutersGetChannelResponse> => { return __request(OpenAPI, {
+export const appsUsersRoutersMyChannel = (): CancelablePromise<AppsUsersRoutersMyChannelResponse> => { return __request(OpenAPI, {
     method: 'GET',
-    url: '/api/v1/channels/{handle}',
-    path: {
-        handle: data.handle
-    }
+    url: '/api/v1/channels/me'
 }); };
 
 /**
