@@ -7,15 +7,16 @@ import TopicCurationSection from '@/features/channels/components/TopicCurationSe
 import SubscribeForm from '@/features/channels/components/SubscribeForm';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     handle: string;
-  };
+  }>;
 }
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const cleanHandle = params.handle.replace('%40', '').replace('@', '');
+  const { handle } = await params;
+  const cleanHandle = handle.replace('%40', '').replace('@', '');
   return {
     title: `@${cleanHandle}'s Investigations - Clarity`,
     description: `Read the latest published investigations by @${cleanHandle}.`
@@ -24,8 +25,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ChannelPage({ params }: PageProps) {
   try {
+    const { handle } = await params;
     // URL may contain @ symbol (e.g. /@investigator), so strip it
-    const cleanHandle = params.handle.replace('%40', '').replace('@', '');
+    const cleanHandle = handle.replace('%40', '').replace('@', '');
     
     // Fetch creator profile + topics
     const { data: profile } = await appsUsersRoutersGetChannel({ path: { handle: cleanHandle } } as any);
@@ -71,7 +73,7 @@ export default async function ChannelPage({ params }: PageProps) {
         </div>
 
         <FeedView 
-          initialData={initialData!} 
+          initialData={initialData} 
           fetchNextPage={fetchNextPage} 
           header={<h2 className="text-xl font-semibold mb-2">Published Events</h2>}
           emptyTitle={`No events from ${cleanHandle}`}

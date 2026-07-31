@@ -5,7 +5,7 @@ import EventCardGrid from './EventCardGrid';
 import LoadMoreButton from '@/shared/components/LoadMoreButton';
 
 interface FeedViewProps {
-  initialData: PaginatedEventSummarySchema;
+  initialData?: PaginatedEventSummarySchema;
   fetchNextPage: (cursor: string) => Promise<PaginatedEventSummarySchema>;
   header?: React.ReactNode;
   emptyTitle?: string;
@@ -13,9 +13,9 @@ interface FeedViewProps {
 }
 
 export default function FeedView({ initialData, fetchNextPage, header, emptyTitle, emptyDescription }: FeedViewProps) {
-  const [items, setItems] = useState<EventSummarySchema[]>(initialData.items);
-  const [nextCursor, setNextCursor] = useState<string | null>(initialData.next_cursor || null);
-  const [hasNext, setHasNext] = useState<boolean>(initialData.has_next);
+  const [items, setItems] = useState<EventSummarySchema[]>(initialData?.items || []);
+  const [nextCursor, setNextCursor] = useState<string | null>(initialData?.next_cursor || null);
+  const [hasNext, setHasNext] = useState<boolean>(initialData?.has_next || false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const handleLoadMore = async () => {

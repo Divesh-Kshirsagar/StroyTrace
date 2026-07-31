@@ -142,3 +142,19 @@
   - `apps/frontend/features/**/*.tsx`: Added destructuring assignment `const { data } = await ...` across all component API mutations to unwrap the `RequestResult`.
 - **Decision Logic:** Instead of rolling back `hey-api`, we embraced the strict structure. The new grouped payload structure natively resolves previous edge-case bugs where query params mixed dangerously with body properties. Fixing it at the framework layer meant replacing roughly 50 usages automatically via scripts before manually handling edge cases (e.g., sitemap array iterations mapping to `undefined`).
 - **Result Status:** Typecheck passes cleanly with 0 errors. Next.js builds cleanly. The proxy 404 is natively resolved due to correct layout initialization.
+
+## [2026-07-31 18:44] - Commit: 933be18ac47619580b892739bdbdd66f70938997 - Task: Fix Next 15 Route Params and Auth 401s
+
+- **Objective:** Fix async params bug, fn is not a function HMR bug, server 401s, and implement navigation/protected routes.
+- **Assumptions Declared:** Assuming js-cookie access_token storage allows Next.js SSR to securely attach Bearer headers, and that clearing HeyAPI interceptors prevents Turbopack HMR function buildup.
+- **Modifications Matrix:**
+  - Modified `apps/frontend/app/[handle]/page.tsx`
+  - Modified `apps/frontend/app/[handle]/[eventSlug]/page.tsx`
+  - Modified `apps/frontend/app/topic/[slug]/page.tsx`
+  - Modified `apps/frontend/shared/lib/apiClient.ts`
+  - Modified `apps/frontend/features/auth/hooks/useAuth.tsx`
+  - Modified `apps/frontend/app/layout.tsx`
+  - Added `apps/frontend/shared/components/Navbar.tsx`
+  - Added `apps/frontend/middleware.ts`
+- **Decision Logic:** Next 15 dynamic routing explicitly requires `params` to be unwrapped via `await`. HMR bug triggered multiple `.use()` calls without clearing. Server component fetching failed because `localStorage` is inaccessible, necessitating `cookies()` logic in `apiClient.ts`. Middleware required to fence authenticated paths (`/dashboard`).
+- **Result Status:** Build pass, Typecheck pass.

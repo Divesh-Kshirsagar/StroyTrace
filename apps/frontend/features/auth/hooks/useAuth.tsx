@@ -55,6 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data: resData } = await appsUsersRoutersLogin({ body: data } as any);
       if (!resData) throw new Error("Login failed");
       localStorage.setItem('access_token', resData.access_token);
+      Cookies.set('access_token', resData.access_token, { expires: 7 });
       Cookies.set('refresh_token', resData.refresh_token, { expires: 7 });
       await loadUser();
       router.push(`/@${resData.user.creator_profile.handle}`);
@@ -69,6 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data: resData } = await appsUsersRoutersRegister({ body: data } as any);
       if (!resData) throw new Error("Registration failed");
       localStorage.setItem('access_token', resData.access_token);
+      Cookies.set('access_token', resData.access_token, { expires: 7 });
       Cookies.set('refresh_token', resData.refresh_token, { expires: 7 });
       await loadUser();
       router.push(`/@${resData.user.creator_profile.handle}`);
@@ -86,6 +88,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } finally {
       localStorage.removeItem('access_token');
+      Cookies.remove('access_token');
       Cookies.remove('refresh_token');
       setUser(null);
       setCreatorProfile(null);

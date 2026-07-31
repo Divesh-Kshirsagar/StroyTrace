@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import React from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Toaster } from 'sonner';
+
 import { AuthProvider } from "@/features/auth/hooks/useAuth";
 import Analytics from '@/shared/components/Analytics';
+import Navbar from '@/shared/components/Navbar';
 import '@/shared/lib/apiClient';
 
 const geistSans = Geist({
@@ -36,7 +37,10 @@ export default function RootLayout({
         <React.Suspense fallback={null}>
           <Analytics />
         </React.Suspense>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <Navbar />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

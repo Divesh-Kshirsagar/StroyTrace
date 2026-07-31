@@ -12,12 +12,15 @@ async function fetchNextPage(cursor: string) {
 }
 
 export default async function HomePage() {
-  const { data: initialData } = await appsFeedsRoutersHomeFeed({});
+  const { data: initialData, error } = await appsFeedsRoutersHomeFeed({});
+  if (error) {
+    console.error("HOME FEED ERROR:", error);
+  }
   
   return (
     <main>
       <FeedView 
-        initialData={initialData!} 
+        initialData={initialData} 
         fetchNextPage={fetchNextPage} 
         header={<h1 className="text-3xl font-bold">Latest Investigations</h1>}
         emptyTitle="No investigations yet"

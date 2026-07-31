@@ -5,15 +5,16 @@ import EventDetailView from '@/features/events/components/EventDetailView';
 import '@/shared/lib/apiClient';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     handle: string;
     eventSlug: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   try {
-    const { data } = await appsEventsRoutersGetEvent({ path: { slug: params.eventSlug } } as any);
+    const { handle, eventSlug } = await params;
+    const { data } = await appsEventsRoutersGetEvent({ path: { slug: eventSlug } } as any);
     if (!data) throw new Error('Not found');
     
     // In next v15 / heyapi v0.52.8 we might need to just pass `{ slug: params.eventSlug }` directly
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const description = event.summary?.substring(0, 160) || `A detailed investigation into ${event.title}...`;
     
     // Find primary thumbnail
-    const canonicalUrl = `https://clarity.com/${params.handle}/${params.eventSlug}`;
+    const canonicalUrl = `https://clarity.com/${handle}/${eventSlug}`;
 
     const firstEvidenceWithThumbnail = data.evidence?.find(e => e.thumbnail_url);
     const ogImage = firstEvidenceWithThumbnail?.thumbnail_url || '/og-default.png';
@@ -38,7 +39,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         title,
         description,
         type: 'article',
-        url: `https://clarity.com/${params.handle}/${params.eventSlug}`,
+        url: `https://clarity.com/${handle}/${eventSlug}`,
         images: [{ url: ogImage }],
       },
       twitter: {
@@ -57,7 +58,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function EventPage({ params }: PageProps) {
   try {
-    const { data } = await appsEventsRoutersGetEvent({ path: { slug: params.eventSlug } } as any);
+    const { handle, eventSlug } = await params;
+    const { data } = await appsEventsRoutersGetEvent({ path: { slug: eventSlug } } as any);
     if (!data) throw new Error('Not found');    
     const jsonLd = {
       "@context": "https://schema.org",
@@ -67,8 +69,8 @@ export default async function EventPage({ params }: PageProps) {
       "dateModified": data.event.updated_at,
       "author": [{
           "@type": "Person",
-          "name": params.handle,
-          "url": `https://clarity.com/${params.handle}`
+          "name": handle,
+          "url": `https://clarity.com/${handle}`
       }],
       "description": data.event.summary || data.event.title,
     };
