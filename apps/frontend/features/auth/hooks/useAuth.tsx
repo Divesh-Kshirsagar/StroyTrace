@@ -32,14 +32,16 @@ function getStoredToken(): string | null {
 
 function storeTokens(accessToken: string, refreshToken: string) {
   localStorage.setItem('access_token', accessToken);
-  Cookies.set('access_token', accessToken, { expires: 7, sameSite: 'lax' });
-  Cookies.set('refresh_token', refreshToken, { expires: 7, sameSite: 'lax' });
+  // path: '/' is CRITICAL — without it js-cookie scopes to the current path,
+  // so the cookie won't be sent from /dashboard, /editor etc.
+  Cookies.set('access_token', accessToken, { expires: 7, sameSite: 'lax', path: '/' });
+  Cookies.set('refresh_token', refreshToken, { expires: 7, sameSite: 'lax', path: '/' });
 }
 
 function clearTokens() {
   localStorage.removeItem('access_token');
-  Cookies.remove('access_token');
-  Cookies.remove('refresh_token');
+  Cookies.remove('access_token', { path: '/' });
+  Cookies.remove('refresh_token', { path: '/' });
 }
 
 // ─── Provider ────────────────────────────────────────────────────────────────

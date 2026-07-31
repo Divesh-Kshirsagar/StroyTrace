@@ -198,3 +198,15 @@
   - Modified: `apps/frontend/app/search/page.tsx` - complete rewrite, no useSearchParams, cancellable fetches, didMount ref
 - **Decision Logic:** The events router was registered at api.add_router with auth=AuthBearer() which overrides per-endpoint auth=None — making search/get_event inaccessible to anonymous users. Moved auth to individual mutating endpoint decorators. OptionalAuthBearer added for get_event to selectively expose unpublished narrative to its owner. Search page rewrote to eliminate useSearchParams which was subscribing to URL changes from history.replaceState causing cascade re-renders.
 - **Result Status:** Django check OK (2 silenced). 10/10 backend tests pass. Frontend typecheck pass. Frontend build pass.
+
+## [2026-07-31 19:50] - Commit: 15e0c29 - Task: Fix ERR_TOO_MANY_REDIRECTS and Dashboard fetch loop
+
+- **Objective:** Fix the infinite redirect loop on `api/v1/topics/` and dashboard routes, fix Django Admin crash, and fix Dashboard re-render fetch loop.
+- **Assumptions Declared:** The `ERR_TOO_MANY_REDIRECTS` stems from conflicting `apiClient.ts` baseUrl and Next.js proxy rewrites causing Next.js middleware and router to recursively redirect. The cookies were lacking a root path, failing to apply across all routes.
+- **Modifications Matrix:**
+  - Modified: `apps/frontend/shared/lib/apiClient.ts` - Used empty `baseUrl` on browser to leverage Next.js proxy, and absolute URL on server.
+  - Modified: `apps/frontend/features/auth/hooks/useAuth.tsx` - Added `path: '/'` to js-cookie settings to ensure cookies are sent across all routes, and set `baseUrl: ''` in interceptor initialization.
+  - Modified: `apps/backend/apps/users/admin.py` - Explicitly overrode `fieldsets` in custom `UserAdmin` to avoid nonexistent `username`/`first_name`/`last_name`.
+  - Modified: `apps/frontend/features/dashboard/components/Dashboard.tsx` - Rewrote to decouple `fetchEvents` from React hook dependencies (using `useRef` for cursors), and prevented API errors from bubbling up to React's Error Boundary to avoid remount loops.
+- **Decision Logic:** Unifying the API proxy strategy ensures all browser API calls hit `/api/v1/*` avoiding CORS and resolving the proxy redirects, while keeping server-side fetching strictly via localhost:8000. `js-cookie` defaults to scoping to the current path (`/login`), so explicitly adding `path: '/'` is mandatory for middleware visibility on other routes.
+- **Result Status:** Compile state passes. Frontend typecheck and build pass. Django admin and dashboard work correctly without infinite loops.
