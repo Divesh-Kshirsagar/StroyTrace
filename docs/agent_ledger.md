@@ -231,3 +231,15 @@
   - Modified: `apps/frontend/app/editor/[slug]/page.tsx` - Awaited the asynchronous `params` object correctly for Next.js 16 to resolve the sync dynamic API throw.
 - **Decision Logic:** The dashboard expects `/editor/new`, so shifting the generic `/editor` index to `/editor/new` handles the creation UX perfectly while leaving `[slug]` to handle updates gracefully. 
 - **Result Status:** Build passes cleanly without any dynamic segment errors. Browser cache issues diagnosed.
+
+## [2026-07-31 20:32] - Commit: c645fd7 - Task: Fix Next.js 16 Warnings & Component Boundaries
+
+- **Objective:** Fix `middleware.ts` deprecation warning, hydration errors in `NarrativeEditorPanel.tsx`, and the "Event handlers cannot be passed to Client Component props" crash.
+- **Assumptions Declared:** Next.js 16 replaced `middleware.ts` with `proxy.ts` using an `export function proxy()` signature. `TopicBadge` and `CreatorBadge` lacked the `'use client'` directive while declaring `onClick` DOM event handlers, violating RSC boundaries. TipTap's `StarterKit` requires explicit opt-out of SSR rendering (`immediatelyRender: false`) to avoid hydration mismatch.
+- **Modifications Matrix:**
+  - Modified: `apps/frontend/middleware.ts` -> `apps/frontend/proxy.ts` - Renamed and updated the exported function to `proxy`.
+  - Modified: `apps/frontend/shared/components/TopicBadge.tsx` - Added `'use client'` to support `onClick={e => e.stopPropagation()}`.
+  - Modified: `apps/frontend/shared/components/CreatorBadge.tsx` - Added `'use client'` for `onClick` behavior.
+  - Modified: `apps/frontend/features/events/components/NarrativeEditorPanel.tsx` - Set `immediatelyRender: false`, and removed the duplicate `Link` extension causing the TipTap core warning.
+- **Decision Logic:** Bringing the codebase into full compliance with Next.js 16 (Turbopack) strict requirements ensures smooth compilation and fixes the Server Component crashes. Setting `immediatelyRender: false` ensures the rich text editor mounts properly without server/client HTML divergence.
+- **Result Status:** Typecheck and build complete cleanly (100% success without deprecation or serialization warnings).

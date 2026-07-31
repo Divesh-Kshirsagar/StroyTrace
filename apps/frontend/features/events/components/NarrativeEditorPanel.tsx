@@ -2,7 +2,6 @@
 import { useEditor } from '../context/EditorContext';
 import { useEditor as useTipTap, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
 import { Card } from '@/shared/components/ui/card';
 import { useEffect, useRef } from 'react';
 
@@ -22,8 +21,9 @@ export default function NarrativeEditorPanel() {
   const editor = useTipTap({
     extensions: [
       StarterKit,
-      Link.configure({ openOnClick: false }),
+      // Link.configure({ openOnClick: false }), // Removed due to duplicate extension name warning
     ],
+    immediatelyRender: false,
     content: narrative.content,
     onUpdate: ({ editor }) => {
       setNarrativeContent(editor.getHTML());
