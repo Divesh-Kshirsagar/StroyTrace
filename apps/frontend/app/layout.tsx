@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { AuthProvider } from "@/features/auth/hooks/useAuth";
+import SessionExpiredModal from "@/features/auth/components/SessionExpiredModal";
 import Analytics from '@/shared/components/Analytics';
 import Navbar from '@/shared/components/Navbar';
 import '@/shared/lib/apiClient';
@@ -40,6 +41,7 @@ export default function RootLayout({
         <AuthProvider>
           <Navbar />
           {children}
+          <SessionExpiredModal />
         </AuthProvider>
       </body>
     </html>
