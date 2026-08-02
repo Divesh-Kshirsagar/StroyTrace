@@ -70,7 +70,11 @@ export default function EventCard({ event }: EventCardProps) {
             className="pt-2 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between gap-2"
             onClick={(e) => e.stopPropagation()}
           >
-            <UpvoteButton eventSlug={event.slug} />
+            <UpvoteButton
+              eventSlug={event.slug}
+              initialCount={event.upvote_count}
+              initiallyUpvoted={event.viewer_has_upvoted}
+            />
             <TransparencyTooltip eventSlug={event.slug} />
           </div>
         </div>

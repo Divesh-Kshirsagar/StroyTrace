@@ -3,16 +3,17 @@ from __future__ import annotations
 from typing import Optional
 
 from django.db import IntegrityError
+from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from ninja import Router
 from ninja.errors import HttpError
 
 from apps.events.models import Event
-from core.auth import AuthBearer
+from apps.feeds.models import Interaction
+from core.auth import AuthBearer, OptionalAuthBearer
 from core.pagination import paginate_queryset
 
-from .models import Interaction
 from .schemas import (
     EventTransparencyResponse,
     InteractRequest,
@@ -33,14 +34,29 @@ def _base_qs():
     return (
         Event.objects.filter(status="published")
         .select_related("lead_investigator", "lead_investigator__creator_profile")
-        .prefetch_related("topics", "evidence_set")
+        .prefetch_related(
+            "topics",
+            "evidence_set",
+            Prefetch("interactions", queryset=Interaction.objects.select_related("user")),
+        )
     )
 
 
+def _annotate_viewer(items: list, viewer) -> list:
+    """Stamp each event with _viewer_user so the schema resolver can check has_upvoted."""
+    for event in items:
+        event._viewer_user = viewer
+    return items
+
+
 def _event_transparency_factors(event: Event) -> list[dict]:
-    """Aggregate qualitative factors for the transparency tooltip."""
+    """Aggregate qualitative factors. Uses prefetched interactions cache."""
     factors: list[dict] = []
-    interactions = list(event.interactions.select_related("user").all())
+    # Use the prefetch cache if available; fall back to a fresh query
+    if hasattr(event, '_prefetched_objects_cache') and 'interactions' in event._prefetched_objects_cache:
+        interactions = list(event._prefetched_objects_cache['interactions'])
+    else:
+        interactions = list(event.interactions.select_related("user").all())
 
     # Verified contributors
     verified_count = sum(
@@ -86,7 +102,7 @@ def _event_transparency_factors(event: Event) -> list[dict]:
 # Feed endpoints
 # ---------------------------------------------------------------------------
 
-@feeds_router.get("/home", response=PaginatedEventSummarySchema)
+@feeds_router.get("/home", response=PaginatedEventSummarySchema, auth=None)
 def home_feed(
     request,
     sort: str = "trending",
@@ -96,31 +112,32 @@ def home_feed(
     """
     Returns the home feed.  Use ``?sort=trending`` (default) or ``?sort=latest``.
     """
+    viewer = OptionalAuthBearer()(request)
     qs = _base_qs()
-    if sort == "latest":
-        qs = qs.order_by("-created_at")
-    else:
-        # Default: trending — secondary sort by created_at for stable ordering
-        qs = qs.order_by("-trending_score", "-created_at")
-    return paginate_queryset(qs, cursor, limit)
+    valid_sort = sort if sort in ("trending", "latest") else "trending"
+    result = paginate_queryset(qs, cursor, limit, sort=valid_sort)
+    result["items"] = _annotate_viewer(result["items"], viewer)
+    return result
 
 
-@feeds_router.get("/topic/{slug}", response=PaginatedEventSummarySchema)
+@feeds_router.get("/topic/{slug}", response=PaginatedEventSummarySchema, auth=None)
 def topic_feed(request, slug: str, cursor: Optional[str] = None, limit: int = 20):
-    qs = _base_qs().filter(topics__slug=slug).order_by("-trending_score", "-created_at")
-    return paginate_queryset(qs, cursor, limit)
+    viewer = OptionalAuthBearer()(request)
+    qs = _base_qs().filter(topics__slug=slug)
+    result = paginate_queryset(qs, cursor, limit, sort="trending")
+    result["items"] = _annotate_viewer(result["items"], viewer)
+    return result
 
 
-@feeds_router.get("/channel/{handle}", response=PaginatedEventSummarySchema)
+@feeds_router.get("/channel/{handle}", response=PaginatedEventSummarySchema, auth=None)
 def channel_feed(
     request, handle: str, cursor: Optional[str] = None, limit: int = 20
 ):
-    qs = (
-        _base_qs()
-        .filter(lead_investigator__creator_profile__handle=handle)
-        .order_by("-trending_score", "-created_at")
-    )
-    return paginate_queryset(qs, cursor, limit)
+    viewer = OptionalAuthBearer()(request)
+    qs = _base_qs().filter(lead_investigator__creator_profile__handle=handle)
+    result = paginate_queryset(qs, cursor, limit, sort="latest")
+    result["items"] = _annotate_viewer(result["items"], viewer)
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -141,21 +158,39 @@ def get_event_transparency(request, slug: str):
     from apps.feeds.services.confidence import EngagementConfidenceService
     from core.auth import OptionalAuthBearer
 
-    event = get_object_or_404(Event, slug=slug)
+    event = get_object_or_404(
+        Event.objects.prefetch_related(
+            Prefetch("interactions", queryset=Interaction.objects.select_related("user"))
+        ),
+        slug=slug,
+    )
 
     # Resolve the requesting user without requiring authentication
     auth_user = OptionalAuthBearer()(request)
 
     viewer_factors: list[dict] = []
+    viewer_has_upvoted = False
     if auth_user:
         viewer_factors = EngagementConfidenceService.get_qualitative_factors(auth_user)
+        viewer_has_upvoted = event.interactions.filter(
+            user=auth_user, interaction_type="upvote"
+        ).exists()
+
+    interactions = list(event.interactions.all())
+    upvote_count = sum(1 for i in interactions if i.interaction_type == "upvote")
+    comment_count = sum(1 for i in interactions if i.interaction_type == "comment")
+    share_count = sum(1 for i in interactions if i.interaction_type == "share")
 
     event_factors = _event_transparency_factors(event)
 
     return EventTransparencyResponse(
         event_slug=event.slug,
         trending_score=event.trending_score,
-        total_interactions=event.interactions.count(),
+        total_interactions=len(interactions),
+        upvote_count=upvote_count,
+        comment_count=comment_count,
+        share_count=share_count,
+        viewer_has_upvoted=viewer_has_upvoted,
         viewer_factors=[TransparencyFactor(**f) for f in viewer_factors],
         event_factors=[TransparencyFactor(**f) for f in event_factors],
     )

@@ -5,11 +5,12 @@ import { appsFeedsRoutersCreateInteraction, appsFeedsRoutersRemoveInteraction } 
 
 interface UpvoteButtonProps {
   eventSlug: string;
-  initialCount?: number;
+  initialCount: number;
+  initiallyUpvoted: boolean;
 }
 
-export default function UpvoteButton({ eventSlug, initialCount = 0 }: UpvoteButtonProps) {
-  const [isUpvoted, setIsUpvoted] = useState(false);
+export default function UpvoteButton({ eventSlug, initialCount, initiallyUpvoted }: UpvoteButtonProps) {
+  const [isUpvoted, setIsUpvoted] = useState(initiallyUpvoted);
   const [count, setCount] = useState(initialCount);
   const [isPending, setIsPending] = useState(false);
 
@@ -17,8 +18,8 @@ export default function UpvoteButton({ eventSlug, initialCount = 0 }: UpvoteButt
     if (isPending) return;
     setIsPending(true);
 
-    // Optimistic update
     const wasUpvoted = isUpvoted;
+    // Optimistic update
     setIsUpvoted(!wasUpvoted);
     setCount(c => wasUpvoted ? c - 1 : c + 1);
 
@@ -35,7 +36,7 @@ export default function UpvoteButton({ eventSlug, initialCount = 0 }: UpvoteButt
         });
       }
     } catch {
-      // Revert optimistic update on error
+      // Revert on error
       setIsUpvoted(wasUpvoted);
       setCount(c => wasUpvoted ? c + 1 : c - 1);
     } finally {

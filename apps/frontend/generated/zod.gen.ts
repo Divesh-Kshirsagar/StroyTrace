@@ -159,7 +159,9 @@ export const zEventSummarySchema = z.object({
     primary_topic: zTopicSummarySchema.nullish(),
     evidence_count: z.int(),
     primary_thumbnail: z.string().nullish(),
-    created_at: z.iso.datetime()
+    created_at: z.iso.datetime(),
+    upvote_count: z.int(),
+    viewer_has_upvoted: z.boolean()
 });
 
 /**
@@ -287,6 +289,10 @@ export const zEventTransparencyResponse = z.object({
     event_slug: z.string(),
     trending_score: z.number(),
     total_interactions: z.int(),
+    upvote_count: z.int(),
+    comment_count: z.int(),
+    share_count: z.int(),
+    viewer_has_upvoted: z.boolean(),
     viewer_factors: z.array(zTransparencyFactor),
     event_factors: z.array(zTransparencyFactor)
 });

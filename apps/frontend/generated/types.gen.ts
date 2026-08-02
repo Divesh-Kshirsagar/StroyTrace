@@ -327,6 +327,14 @@ export type EventSummarySchema = {
      * Created At
      */
     created_at: string;
+    /**
+     * Upvote Count
+     */
+    upvote_count: number;
+    /**
+     * Viewer Has Upvoted
+     */
+    viewer_has_upvoted: boolean;
 };
 
 /**
@@ -573,6 +581,22 @@ export type EventTransparencyResponse = {
      * Total Interactions
      */
     total_interactions: number;
+    /**
+     * Upvote Count
+     */
+    upvote_count: number;
+    /**
+     * Comment Count
+     */
+    comment_count: number;
+    /**
+     * Share Count
+     */
+    share_count: number;
+    /**
+     * Viewer Has Upvoted
+     */
+    viewer_has_upvoted: boolean;
     /**
      * Viewer Factors
      */

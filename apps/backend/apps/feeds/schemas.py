@@ -25,6 +25,8 @@ class EventSummarySchema(Schema):
     evidence_count: int
     primary_thumbnail: Optional[str] = None
     created_at: datetime
+    upvote_count: int
+    viewer_has_upvoted: bool
     
     @staticmethod
     def resolve_lead_investigator(obj):
@@ -58,6 +60,20 @@ class EventSummarySchema(Schema):
                 if ev.thumbnail_url:
                     return ev.thumbnail_url
         return None
+
+    @staticmethod
+    def resolve_upvote_count(obj):
+        return obj.interactions.filter(interaction_type="upvote").count()
+
+    @staticmethod
+    def resolve_viewer_has_upvoted(obj):
+        # _viewer_user is injected by the feed endpoint resolver below
+        viewer = getattr(obj, '_viewer_user', None)
+        if viewer is None or not viewer.is_authenticated:
+            return False
+        return obj.interactions.filter(
+            user=viewer, interaction_type="upvote"
+        ).exists()
 
 class PaginatedEventSummarySchema(Schema):
     items: List[EventSummarySchema]
@@ -93,5 +109,9 @@ class EventTransparencyResponse(Schema):
     event_slug: str
     trending_score: float
     total_interactions: int
+    upvote_count: int
+    comment_count: int
+    share_count: int
+    viewer_has_upvoted: bool
     viewer_factors: List[TransparencyFactor]
     event_factors: List[TransparencyFactor]

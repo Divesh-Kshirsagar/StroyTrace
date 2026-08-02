@@ -3,43 +3,84 @@ from datetime import datetime
 from typing import Optional, Tuple
 from django.db.models import QuerySet, Q
 
-def encode_cursor(created_at: datetime, pk: str) -> str:
-    cursor_str = f"{created_at.timestamp()}|{pk}"
+
+def encode_cursor(value: str, pk: str) -> str:
+    """Encode a sort value + pk into an opaque cursor string."""
+    cursor_str = f"{value}|{pk}"
     return base64.b64encode(cursor_str.encode('utf-8')).decode('utf-8')
 
-def decode_cursor(cursor: str) -> Tuple[Optional[datetime], Optional[str]]:
+
+def decode_cursor(cursor: str) -> Tuple[Optional[str], Optional[str]]:
     try:
         decoded = base64.b64decode(cursor.encode('utf-8')).decode('utf-8')
-        ts_str, pk = decoded.split('|')
-        return datetime.fromtimestamp(float(ts_str)), pk
+        value, pk = decoded.split('|', 1)
+        return value, pk
     except Exception:
         return None, None
 
-def paginate_queryset(qs: QuerySet, cursor: Optional[str], limit: int = 20) -> dict:
-    # Ensure ordered by created_at DESC, id DESC
-    qs = qs.order_by('-created_at', '-id')
-    
+
+def paginate_queryset(
+    qs: QuerySet,
+    cursor: Optional[str],
+    limit: int = 20,
+    sort: str = "latest",
+) -> dict:
+    """
+    Cursor-based pagination that respects the requested sort order.
+
+    sort="latest"   — ordered by created_at DESC  (cursor encodes timestamp)
+    sort="trending" — ordered by trending_score DESC, created_at DESC
+                      (cursor encodes score|timestamp so both fields are stable)
+    """
+    if sort == "trending":
+        qs = qs.order_by('-trending_score', '-created_at', '-id')
+    else:
+        qs = qs.order_by('-created_at', '-id')
+
     if cursor:
-        created_at, pk = decode_cursor(cursor)
-        if created_at and pk:
-            qs = qs.filter(
-                Q(created_at__lt=created_at) | 
-                (Q(created_at=created_at) & Q(id__lt=pk))
-            )
-            
+        value, pk = decode_cursor(cursor)
+        if value and pk:
+            if sort == "trending":
+                # value is "score|timestamp"
+                try:
+                    score_str, ts_str = value.split('~', 1)
+                    score = float(score_str)
+                    ts = datetime.fromtimestamp(float(ts_str))
+                    qs = qs.filter(
+                        Q(trending_score__lt=score)
+                        | Q(trending_score=score, created_at__lt=ts)
+                        | Q(trending_score=score, created_at=ts, id__lt=pk)
+                    )
+                except (ValueError, TypeError):
+                    pass
+            else:
+                try:
+                    ts = datetime.fromtimestamp(float(value))
+                    qs = qs.filter(
+                        Q(created_at__lt=ts)
+                        | Q(created_at=ts, id__lt=pk)
+                    )
+                except (ValueError, TypeError):
+                    pass
+
     items = list(qs[:limit + 1])
     has_next = len(items) > limit
-    
+
     if has_next:
         items = items[:limit]
-        last_item = items[-1]
-        next_cursor = encode_cursor(last_item.created_at, str(last_item.id))
-    else:
-        next_cursor = None
-        
+
+    next_cursor = None
+    if has_next and items:
+        last = items[-1]
+        if sort == "trending":
+            cursor_value = f"{last.trending_score}~{last.created_at.timestamp()}"
+        else:
+            cursor_value = str(last.created_at.timestamp())
+        next_cursor = encode_cursor(cursor_value, str(last.id))
+
     return {
         "items": items,
         "next_cursor": next_cursor,
         "previous_cursor": None,
-        "has_next": has_next
+        "has_next": has_next,
     }

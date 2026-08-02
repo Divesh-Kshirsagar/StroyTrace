@@ -1,6 +1,7 @@
 import { EventFullSchema } from '@/generated';
 import NarrativeRenderer from './NarrativeRenderer';
 import EvidenceBoard from './EvidenceBoard';
+import TrendingBreakdown from './TrendingBreakdown';
 import CreatorBadge from '@/shared/components/CreatorBadge';
 
 interface EventDetailViewProps {
@@ -61,6 +62,15 @@ export default function EventDetailView({ data }: EventDetailViewProps) {
             <div className="flex flex-col gap-4">
               <EvidenceBoard evidence={evidence} />
             </div>
+
+            {event.status === 'published' && (
+              <div className="mt-8">
+                <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-400 mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-2">
+                  Engagement
+                </h2>
+                <TrendingBreakdown eventSlug={event.slug} />
+              </div>
+            )}
           </div>
         </div>
       </div>
