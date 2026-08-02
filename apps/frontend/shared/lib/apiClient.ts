@@ -16,6 +16,19 @@ client.setConfig({ baseUrl });
 // ─── Token storage helpers ───────────────────────────────────────────────────
 // Exported so useAuth and the interceptor share a single source of truth.
 
+// Cookie lifetimes mirror the backend JWT settings.
+// Set NEXT_PUBLIC_ACCESS_TOKEN_EXPIRE_MINUTES and
+// NEXT_PUBLIC_REFRESH_TOKEN_EXPIRE_DAYS in your .env to match
+// ACCESS_TOKEN_EXPIRE_MINUTES and REFRESH_TOKEN_EXPIRE_DAYS on the backend.
+const ACCESS_TOKEN_EXPIRE_MINUTES = parseInt(
+  process.env.NEXT_PUBLIC_ACCESS_TOKEN_EXPIRE_MINUTES ?? '15',
+  10,
+);
+const REFRESH_TOKEN_EXPIRE_DAYS = parseInt(
+  process.env.NEXT_PUBLIC_REFRESH_TOKEN_EXPIRE_DAYS ?? '7',
+  10,
+);
+
 export function getAccessToken(): string | undefined {
   if (!isBrowser) return undefined;
   return localStorage.getItem('access_token') || Cookies.get('access_token') || undefined;
@@ -28,13 +41,25 @@ export function getRefreshToken(): string | undefined {
 
 export function storeTokens(accessToken: string, refreshToken: string) {
   localStorage.setItem('access_token', accessToken);
-  Cookies.set('access_token', accessToken, { expires: 7, sameSite: 'lax', path: '/' });
-  Cookies.set('refresh_token', refreshToken, { expires: 7, sameSite: 'lax', path: '/' });
+  Cookies.set('access_token', accessToken, {
+    expires: ACCESS_TOKEN_EXPIRE_MINUTES / (60 * 24), // convert minutes → days
+    sameSite: 'lax',
+    path: '/',
+  });
+  Cookies.set('refresh_token', refreshToken, {
+    expires: REFRESH_TOKEN_EXPIRE_DAYS,
+    sameSite: 'lax',
+    path: '/',
+  });
 }
 
 export function storeAccessToken(accessToken: string) {
   localStorage.setItem('access_token', accessToken);
-  Cookies.set('access_token', accessToken, { expires: 7, sameSite: 'lax', path: '/' });
+  Cookies.set('access_token', accessToken, {
+    expires: ACCESS_TOKEN_EXPIRE_MINUTES / (60 * 24),
+    sameSite: 'lax',
+    path: '/',
+  });
 }
 
 export function clearTokens() {
