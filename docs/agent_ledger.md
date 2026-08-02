@@ -243,3 +243,11 @@
   - Modified: `apps/frontend/features/events/components/NarrativeEditorPanel.tsx` - Set `immediatelyRender: false`, and removed the duplicate `Link` extension causing the TipTap core warning.
 - **Decision Logic:** Bringing the codebase into full compliance with Next.js 16 (Turbopack) strict requirements ensures smooth compilation and fixes the Server Component crashes. Setting `immediatelyRender: false` ensures the rich text editor mounts properly without server/client HTML divergence.
 - **Result Status:** Typecheck and build complete cleanly (100% success without deprecation or serialization warnings).
+
+## [2026-08-02 08:10] - Commit: b31f1f0ea4e6147c4a0a49e7108180f18aa5a53e - Task: Remove unwanted tracking of .coverage and db.sqlite3
+
+- **Objective:** Remove files such as .coverage, db.sqlite3, and node_modules from git tracking.
+- **Assumptions Declared:** Files were mistakenly added in earlier commits and should be in .gitignore and removed from the cache.
+- **Modifications Matrix:** Modified .gitignore. Deleted .coverage, db.sqlite3, etc. from index.
+- **Decision Logic:** I extended the existing .gitignore to include common python/django/node unneeded files and then ran `git rm -r --cached .` and `git add .` to synchronize the working tree. Done in a feature branch `chore/remove-unwanted-files` to avoid committing to main directly without permission.
+- **Result Status:** Successfully removed from cache and committed in a new branch.
