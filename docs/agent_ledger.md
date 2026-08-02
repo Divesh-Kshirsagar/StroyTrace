@@ -295,3 +295,14 @@
   - **Transparency is qualitative only:** The endpoint returns human-readable `label` strings and `status` enums, never raw scores or formula constants. This is the anti-manipulation design.
   - **EventCard restructure:** Replaced single wrapping `<Link>` with nested `<Link>` blocks + a `stopPropagation` interaction bar. This ensures the upvote button click doesn't navigate the user away.
 - **Result Status:** Django system check clean (2 silenced). 40/40 backend tests pass. Frontend typecheck: 0 errors. Frontend build: clean.
+
+## [2026-08-02 00:30] - Commit: f976c86 - Task: Seed dev database for ranking system testing
+
+- **Objective:** Seed the local SQLite DB with a realistic dataset that makes trending vs. latest sort differences immediately visible and provides known test credentials.
+- **Assumptions Declared:** `core` is not in INSTALLED_APPS so management commands placed there are undiscoverable. Moved `seed_dev_data` into `apps.topics` where the management infrastructure was already being created. The seeder back-dates `date_joined` on users and `created_at` on events at the DB level (using `update()` to bypass `auto_now_add`) to exercise time-decay properly.
+- **Modifications Matrix:**
+  - `apps/backend/apps/topics/management/commands/seed_global_topics.py` — Idempotent global topic seeder (10 topics)
+  - `apps/backend/apps/topics/management/commands/seed_dev_data.py` — Full dev seeder: 4 creators, 6 events, interactions, score recalculation
+  - `apps/backend/core/management/__init__.py`, `commands/__init__.py` — Empty init files (core management scaffold, no commands yet)
+- **Decision Logic:** Used `get_or_create` everywhere with slug/email as the uniqueness key so re-running is safe. Deliberately varied account ages (40d, 15d, 2d, 20d) and interaction patterns so the confidence multiplier produces visible score differences. `old-corruption-case` (72h, 15 interactions) outscores `surveillance-state` (3h, 10 interactions) in the current seed, confirming the formula behaves as expected.
+- **Result Status:** `uv run python manage.py seed_dev_data` runs cleanly and is idempotent. 5 published events in the feed with non-trivial score spread. 1 draft excluded from feed.
