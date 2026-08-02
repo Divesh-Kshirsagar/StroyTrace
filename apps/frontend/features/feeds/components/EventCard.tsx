@@ -34,9 +34,10 @@ export default function EventCard({ event }: EventCardProps) {
         </Link>
 
         <div className="p-4 flex flex-col flex-grow gap-2">
-          <Link href={eventUrl} className="block">
-            <CreatorBadge creator={event.lead_investigator} />
+          {/* Creator badge sits outside the event link to avoid nested <a> */}
+          <CreatorBadge creator={event.lead_investigator} />
 
+          <Link href={eventUrl} className="block">
             <h3 className="font-bold text-lg leading-tight line-clamp-2 mt-1">
               {event.title}
             </h3>
