@@ -64,3 +64,34 @@ class PaginatedEventSummarySchema(Schema):
     next_cursor: Optional[str] = None
     previous_cursor: Optional[str] = None
     has_next: bool
+
+
+# ---------------------------------------------------------------------------
+# Interaction schemas
+# ---------------------------------------------------------------------------
+
+class InteractRequest(Schema):
+    type: str  # "upvote" | "comment" | "share"
+
+
+class InteractResponse(Schema):
+    success: bool
+    new_score: float
+
+
+# ---------------------------------------------------------------------------
+# Transparency schemas
+# ---------------------------------------------------------------------------
+
+class TransparencyFactor(Schema):
+    factor: str
+    label: str
+    status: str  # "positive" | "neutral" | "warning"
+
+
+class EventTransparencyResponse(Schema):
+    event_slug: str
+    trending_score: float
+    total_interactions: int
+    viewer_factors: List[TransparencyFactor]
+    event_factors: List[TransparencyFactor]

@@ -271,6 +271,41 @@ export const zDraftsCountSchema = z.object({
     count: z.int()
 });
 
+/**
+ * TransparencyFactor
+ */
+export const zTransparencyFactor = z.object({
+    factor: z.string(),
+    label: z.string(),
+    status: z.string()
+});
+
+/**
+ * EventTransparencyResponse
+ */
+export const zEventTransparencyResponse = z.object({
+    event_slug: z.string(),
+    trending_score: z.number(),
+    total_interactions: z.int(),
+    viewer_factors: z.array(zTransparencyFactor),
+    event_factors: z.array(zTransparencyFactor)
+});
+
+/**
+ * InteractResponse
+ */
+export const zInteractResponse = z.object({
+    success: z.boolean(),
+    new_score: z.number()
+});
+
+/**
+ * InteractRequest
+ */
+export const zInteractRequest = z.object({
+    type: z.string()
+});
+
 export const zAppsUsersRoutersRegisterBody = zRegisterRequest;
 
 /**
@@ -491,6 +526,7 @@ export const zAppsEventsCreatorRoutersListCreatorEventsResponse = zPaginatedEven
 export const zAppsEventsCreatorRoutersGetDraftsCountResponse = zDraftsCountSchema;
 
 export const zAppsFeedsRoutersHomeFeedQuery = z.object({
+    sort: z.string().optional().default('trending'),
     cursor: z.string().nullish(),
     limit: z.int().optional().default(20)
 });
@@ -527,3 +563,34 @@ export const zAppsFeedsRoutersChannelFeedQuery = z.object({
  * OK
  */
 export const zAppsFeedsRoutersChannelFeedResponse = zPaginatedEventSummarySchema;
+
+export const zAppsFeedsRoutersGetEventTransparencyPath = z.object({
+    slug: z.string()
+});
+
+/**
+ * OK
+ */
+export const zAppsFeedsRoutersGetEventTransparencyResponse = zEventTransparencyResponse;
+
+export const zAppsFeedsRoutersRemoveInteractionBody = zInteractRequest;
+
+export const zAppsFeedsRoutersRemoveInteractionPath = z.object({
+    slug: z.string()
+});
+
+/**
+ * OK
+ */
+export const zAppsFeedsRoutersRemoveInteractionResponse = zInteractResponse;
+
+export const zAppsFeedsRoutersCreateInteractionBody = zInteractRequest;
+
+export const zAppsFeedsRoutersCreateInteractionPath = z.object({
+    slug: z.string()
+});
+
+/**
+ * OK
+ */
+export const zAppsFeedsRoutersCreateInteractionResponse = zInteractResponse;

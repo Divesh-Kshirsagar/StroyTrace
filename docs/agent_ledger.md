@@ -251,3 +251,47 @@
 - **Modifications Matrix:** Modified .gitignore. Deleted .coverage, db.sqlite3, etc. from index.
 - **Decision Logic:** I extended the existing .gitignore to include common python/django/node unneeded files and then ran `git rm -r --cached .` and `git add .` to synchronize the working tree. Done in a feature branch `chore/remove-unwanted-files` to avoid committing to main directly without permission.
 - **Result Status:** Successfully removed from cache and committed in a new branch.
+
+## [2026-08-02 00:00] - Commit: b3a2a8a - Task: Phase 7.1 — Ranking System Implementation
+
+- **Objective:** Implement the open-source-safe feed ranking system per the Phase 7.1 blueprint. This includes the Engagement Confidence Score, Hacker News-style time decay, Interaction model, async-ready score update pipeline, interaction API endpoints, transparency endpoint, and frontend upvote/transparency components.
+- **Assumptions Declared:**
+  - The project uses a single `config/settings.py` (no `base.py` split), so all ranking config was added there.
+  - `OptionalAuthBearer` had a latent bug: it used `HttpBearer`'s `authenticate()` returning `None` to signal anonymous users, but Ninja treats that as 401. Fixed by switching transparency endpoint to `auth=None` + manual `OptionalAuthBearer()(request)` call — matching the established pattern already used in `events/routers.py::get_event`.
+  - Score updates are synchronous for MVP (signal → direct function call). The `tasks.py` function is named `_sync` and uses an ARQ-compatible signature for future queue promotion.
+  - Tests bypass the rate-limited `/auth/login` endpoint by generating JWT tokens directly using `jwt.encode()` with `settings.SECRET_KEY`. This matches the same token format used in production.
+- **Modifications Matrix:**
+  - `apps/backend/config/settings.py` — 11 new `RANKING_*` env-var-driven settings
+  - `apps/backend/.env.example` — Added ranking weight documentation
+  - `apps/backend/apps/events/models.py` — Added `trending_score`, `last_interaction_at` fields + indexes
+  - `apps/backend/apps/events/migrations/0004_add_trending_score_fields.py` — New migration
+  - `apps/backend/apps/feeds/models.py` — New `Interaction` model with UniqueConstraint
+  - `apps/backend/apps/feeds/migrations/0001_add_interaction_model.py` — New migration
+  - `apps/backend/apps/feeds/apps.py` — Added `ready()` to register signals
+  - `apps/backend/apps/feeds/services/confidence.py` — `EngagementConfidenceService`
+  - `apps/backend/apps/feeds/services/scoring.py` — `TrendingScoreService`
+  - `apps/backend/apps/feeds/signals.py` — `post_save`/`post_delete` signal handlers
+  - `apps/backend/apps/feeds/tasks.py` — ARQ-compatible synchronous score update task
+  - `apps/backend/apps/feeds/factories.py` — `InteractionFactory`
+  - `apps/backend/apps/feeds/routers.py` — New `interact_router`, transparency endpoint, updated home feed with `?sort=`
+  - `apps/backend/apps/feeds/schemas.py` — Added `InteractRequest`, `InteractResponse`, `TransparencyFactor`, `EventTransparencyResponse`
+  - `apps/backend/config/api.py` — Registered `interact_router`
+  - `apps/backend/core/auth.py` — Fixed `OptionalAuthBearer` `__call__` override (non-breaking, falls back cleanly)
+  - `apps/backend/apps/feeds/tests/test_confidence_service.py` — 11 unit tests
+  - `apps/backend/apps/feeds/tests/test_scoring_service.py` — 10 unit tests
+  - `apps/backend/apps/feeds/tests/test_interact_api.py` — 9 integration tests (interact + transparency + sort)
+  - `apps/frontend/features/feeds/components/UpvoteButton.tsx` — Optimistic UI upvote toggle
+  - `apps/frontend/features/feeds/components/TransparencyTooltip.tsx` — Lazy-loaded transparency tooltip
+  - `apps/frontend/features/feeds/components/SortToggle.tsx` — Trending/latest server-aware toggle
+  - `apps/frontend/features/feeds/components/EventCard.tsx` — Restructured: nested Link + isolated interaction bar
+  - `apps/frontend/app/page.tsx` — Added `?sort=` param pass-through and `SortToggle` header
+  - `apps/frontend/generated/*` — Regenerated SDK (new interact + transparency types)
+  - `docs/docs/feeds/0001-ranking-system.md` — Architecture decision record
+- **Decision Logic:**
+  - **Formula isolation:** All weights in env vars. The algorithm structure is committed; the production values stay in `.env`. This is the open-source safety pattern.
+  - **UniqueConstraint over application-level guard:** DB constraint is the final line of defence against race conditions that bypass the `get_or_create` check. Both layers are in place.
+  - **Synchronous signals for MVP:** Avoids ARQ/Redis infrastructure dependency for MVP while maintaining the exact async signature so the migration is a one-line change when a queue is added.
+  - **Score floor at 0.0:** Explicitly enforced in `calculate_for_event` so negative weights from future moderation features can't produce negative scores.
+  - **Transparency is qualitative only:** The endpoint returns human-readable `label` strings and `status` enums, never raw scores or formula constants. This is the anti-manipulation design.
+  - **EventCard restructure:** Replaced single wrapping `<Link>` with nested `<Link>` blocks + a `stopPropagation` interaction bar. This ensures the upvote button click doesn't navigate the user away.
+- **Result Status:** Django system check clean (2 silenced). 40/40 backend tests pass. Frontend typecheck: 0 errors. Frontend build: clean.

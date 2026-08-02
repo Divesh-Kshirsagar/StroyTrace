@@ -4,7 +4,7 @@ from apps.users.routers import auth_router, channels_router
 from apps.topics.routers import topics_router
 from apps.events.routers import events_router
 from apps.events.creator_routers import creator_events_router
-from apps.feeds.routers import feeds_router
+from apps.feeds.routers import feeds_router, interact_router
 
 from core.auth import AuthBearer, OptionalAuthBearer
 
@@ -31,3 +31,4 @@ api.add_router("/topics", topics_router)
 api.add_router("/events", events_router)
 api.add_router("/creator/events", creator_events_router, auth=AuthBearer())
 api.add_router("/feed", feeds_router)
+api.add_router("/feed", interact_router)

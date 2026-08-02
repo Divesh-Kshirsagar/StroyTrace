@@ -557,6 +557,74 @@ export type DraftsCountSchema = {
     count: number;
 };
 
+/**
+ * EventTransparencyResponse
+ */
+export type EventTransparencyResponse = {
+    /**
+     * Event Slug
+     */
+    event_slug: string;
+    /**
+     * Trending Score
+     */
+    trending_score: number;
+    /**
+     * Total Interactions
+     */
+    total_interactions: number;
+    /**
+     * Viewer Factors
+     */
+    viewer_factors: Array<TransparencyFactor>;
+    /**
+     * Event Factors
+     */
+    event_factors: Array<TransparencyFactor>;
+};
+
+/**
+ * TransparencyFactor
+ */
+export type TransparencyFactor = {
+    /**
+     * Factor
+     */
+    factor: string;
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Status
+     */
+    status: string;
+};
+
+/**
+ * InteractResponse
+ */
+export type InteractResponse = {
+    /**
+     * Success
+     */
+    success: boolean;
+    /**
+     * New Score
+     */
+    new_score: number;
+};
+
+/**
+ * InteractRequest
+ */
+export type InteractRequest = {
+    /**
+     * Type
+     */
+    type: string;
+};
+
 export type AppsUsersRoutersRegisterData = {
     body: RegisterRequest;
     path?: never;
@@ -1070,6 +1138,10 @@ export type AppsFeedsRoutersHomeFeedData = {
     path?: never;
     query?: {
         /**
+         * Sort
+         */
+        sort?: string;
+        /**
          * Cursor
          */
         cursor?: string | null;
@@ -1149,3 +1221,66 @@ export type AppsFeedsRoutersChannelFeedResponses = {
 };
 
 export type AppsFeedsRoutersChannelFeedResponse = AppsFeedsRoutersChannelFeedResponses[keyof AppsFeedsRoutersChannelFeedResponses];
+
+export type AppsFeedsRoutersGetEventTransparencyData = {
+    body?: never;
+    path: {
+        /**
+         * Slug
+         */
+        slug: string;
+    };
+    query?: never;
+    url: '/api/v1/feed/events/{slug}/transparency';
+};
+
+export type AppsFeedsRoutersGetEventTransparencyResponses = {
+    /**
+     * OK
+     */
+    200: EventTransparencyResponse;
+};
+
+export type AppsFeedsRoutersGetEventTransparencyResponse = AppsFeedsRoutersGetEventTransparencyResponses[keyof AppsFeedsRoutersGetEventTransparencyResponses];
+
+export type AppsFeedsRoutersRemoveInteractionData = {
+    body: InteractRequest;
+    path: {
+        /**
+         * Slug
+         */
+        slug: string;
+    };
+    query?: never;
+    url: '/api/v1/feed/events/{slug}/interact';
+};
+
+export type AppsFeedsRoutersRemoveInteractionResponses = {
+    /**
+     * OK
+     */
+    200: InteractResponse;
+};
+
+export type AppsFeedsRoutersRemoveInteractionResponse = AppsFeedsRoutersRemoveInteractionResponses[keyof AppsFeedsRoutersRemoveInteractionResponses];
+
+export type AppsFeedsRoutersCreateInteractionData = {
+    body: InteractRequest;
+    path: {
+        /**
+         * Slug
+         */
+        slug: string;
+    };
+    query?: never;
+    url: '/api/v1/feed/events/{slug}/interact';
+};
+
+export type AppsFeedsRoutersCreateInteractionResponses = {
+    /**
+     * OK
+     */
+    200: InteractResponse;
+};
+
+export type AppsFeedsRoutersCreateInteractionResponse = AppsFeedsRoutersCreateInteractionResponses[keyof AppsFeedsRoutersCreateInteractionResponses];

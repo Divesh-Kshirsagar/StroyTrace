@@ -25,13 +25,19 @@ class Event(models.Model):
         db_index=True
     )
     topics = models.ManyToManyField(Topic, related_name='events', blank=True)
-    
+
+    # Ranking fields — updated asynchronously by the scoring worker
+    trending_score = models.FloatField(default=0.0, db_index=True)
+    last_interaction_at = models.DateTimeField(null=True, blank=True, db_index=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         indexes = [
             models.Index(fields=['status', 'created_at']),
+            models.Index(fields=['-trending_score']),
+            models.Index(fields=['-last_interaction_at']),
         ]
 
     def __str__(self):
