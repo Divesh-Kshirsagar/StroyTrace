@@ -323,3 +323,17 @@
   - Sorted alphabetically alongside existing entries to maintain readability and reduce diff noise in future edits.
   - `uv sync` resolved 23 new packages cleanly (boto3 1.38.46, celery 5.4.0, python-magic 0.4.27, pyvips 2.2.3, redis 5.2.1 and their transitive deps).
 - **Result Status:** `uv sync` resolved all packages without conflicts. Django system check identifies 0 errors (6 security warnings, 2 silenced — same as before). All 40 existing backend tests pass (`40 passed, 39 warnings`).
+
+## [2026-08-03 00:30] - Commit: 3a06363 - Task: 1.2 Create config/celery.py with Celery app instance
+
+- **Objective:** Create `apps/backend/config/celery.py` with a valid Celery `app` instance that references `config.settings.base` as the Django settings module.
+- **Assumptions Declared:**
+  - The project currently has a flat `config/settings.py` (not yet a `settings/` sub-package). Task 1.4 will split this into `config/settings/base.py`. The celery module intentionally points to `config.settings.base` now so it is correct once Task 1.4 completes — there is no regression because `DJANGO_SETTINGS_MODULE` is set via `os.environ.setdefault`, which is a no-op if the variable is already set during tests.
+  - `autodiscover_tasks()` is explicitly NOT added here — Task 5.3 will do that once the task modules exist (as specified).
+  - App is named `"config"` to match the Django project package name, consistent with the Docker Compose `celery -A config worker` command in the design doc.
+  - `namespace='CELERY'` is used so all Celery config keys in Django settings must be prefixed with `CELERY_` (matching the `CELERY_BROKER_URL`, `CELERY_RESULT_BACKEND`, `CELERY_TASK_ALWAYS_EAGER` keys in the design doc).
+- **Modifications Matrix:**
+  - `apps/backend/config/celery.py` — Created: `os.environ.setdefault`, `Celery("config")` instance, `app.config_from_object("django.conf:settings", namespace="CELERY")`.
+- **Decision Logic:** The standard Celery + Django integration pattern requires three things in `celery.py`: (1) set `DJANGO_SETTINGS_MODULE` before any Django import via `os.environ.setdefault`, (2) instantiate `Celery` with the project name, (3) call `config_from_object` pointing at `django.conf:settings` with namespace `CELERY`. The `setdefault` guard ensures test runs that already set `DJANGO_SETTINGS_MODULE` (e.g. to `config.settings`) are not overridden. The module is intentionally minimal — `autodiscover_tasks` is deferred to Task 5.3 as specified.
+- **Result Status:** File exists at `apps/backend/config/celery.py`. Python syntax check passes. `celery` is importable. All 40 existing backend tests continue to pass.
+
