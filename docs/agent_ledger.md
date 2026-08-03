@@ -306,3 +306,20 @@
   - `apps/backend/core/management/__init__.py`, `commands/__init__.py` — Empty init files (core management scaffold, no commands yet)
 - **Decision Logic:** Used `get_or_create` everywhere with slug/email as the uniqueness key so re-running is safe. Deliberately varied account ages (40d, 15d, 2d, 20d) and interaction patterns so the confidence multiplier produces visible score differences. `old-corruption-case` (72h, 15 interactions) outscores `surveillance-state` (3h, 10 interactions) in the current seed, confirming the formula behaves as expected.
 - **Result Status:** `uv run python manage.py seed_dev_data` runs cleanly and is idempotent. 5 published events in the feed with non-trivial score spread. 1 draft excluded from feed.
+
+## [2026-08-03 00:00] - Commit: 859880a - Task: 1.1 Add new dependencies to pyproject.toml (secure-evidence-upload)
+
+- **Objective:** Add `boto3`, `celery`, `redis`, `python-magic`, and `pyvips` with pinned versions to `apps/backend/pyproject.toml` as the first task of the `secure-evidence-upload` spec.
+- **Assumptions Declared:**
+  - The project uses `uv` as the package manager; lockfile is in `.gitignore` and not committed.
+  - `pyvips` requires the native `libvips` shared library (`libvips.so.42`) on the host OS. It is not present in this dev environment, so `import pyvips` raises `OSError` at runtime until `libvips` is installed via `dnf`/`apt`. The Python package itself installs correctly and this is expected pre-infrastructure setup.
+  - All five packages are added to the main `[project] dependencies` list (not `[dependency-groups].dev`) because they are runtime production dependencies per the design doc.
+  - Branch `feature/secure-evidence-upload` created from `feature/ranking-system` HEAD (21c69c6).
+- **Modifications Matrix:**
+  - `apps/backend/pyproject.toml` — Added 5 pinned runtime dependencies in alphabetical order within the list: `boto3>=1.38.0,<1.39`, `celery>=5.4.0,<5.5`, `python-magic==0.4.27`, `pyvips>=2.2.0,<2.3`, `redis>=5.2.0,<5.3`.
+- **Decision Logic:**
+  - Used half-open version ranges (`>=X.Y.0,<X.(Y+1)`) matching the design doc's `X.Y.x` shorthand. `python-magic` uses an exact pin (`==0.4.27`) as specified.
+  - Placed all five in the main `dependencies` array (not `dev`) because they are all needed at runtime by the Celery worker and Django views — they are not test-only packages.
+  - Sorted alphabetically alongside existing entries to maintain readability and reduce diff noise in future edits.
+  - `uv sync` resolved 23 new packages cleanly (boto3 1.38.46, celery 5.4.0, python-magic 0.4.27, pyvips 2.2.3, redis 5.2.1 and their transitive deps).
+- **Result Status:** `uv sync` resolved all packages without conflicts. Django system check identifies 0 errors (6 security warnings, 2 silenced — same as before). All 40 existing backend tests pass (`40 passed, 39 warnings`).
