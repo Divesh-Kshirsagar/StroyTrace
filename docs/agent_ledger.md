@@ -419,3 +419,20 @@
   - `r2_quarantine_key` stores the R2 object key string (e.g. `pending/{event_id}/{evidence_id}/filename.jpg`) which can be up to 1024 bytes per AWS S3/R2 spec — max_length=1000 matches the design doc and leaves a safe margin.
   - `source_url` intentionally left as `URLField` with no blank/null — during `pending_upload`/`processing` states the field holds an empty string, which URLField allows. The design doc explicitly states "source_url is an empty string" during those states.
 - **Result Status:** Model fields added. `django.check` passes (2 silenced). 38/40 backend tests pass; the 2 failures are the expected missing-migration failures that will be resolved by Task 2.4.
+
+## [2026-08-03 14:30] - Commit: 2cb3938 - Task: 2.4 Generate and apply migration for Evidence upload_status and r2_quarantine_key
+
+- **Objective:** Run `makemigrations events` to generate the Django migration for the two new `Evidence` fields added in Tasks 2.1–2.3 (`upload_status` and `r2_quarantine_key`), then apply it with `migrate` and verify all existing tests pass.
+- **Assumptions Declared:**
+  - The `Evidence` model already had `UPLOAD_STATUS_CHOICES`, `upload_status`, and `r2_quarantine_key` added (Tasks 2.1–2.3, commit `a96b7c8`). Those model changes are the sole source of the migration diff.
+  - `default='url_based'` on `upload_status` means Django's `AddField` operation satisfies the backwards-compatibility requirement without a separate data migration — existing rows receive `url_based` automatically at the DB level.
+  - The last applied migration was `0004_add_trending_score_fields`. The new migration depends on it and is named `0005_evidence_r2_quarantine_key_evidence_upload_status`.
+  - No schema changes were needed for the `r2_quarantine_key` null handling — `blank=True, null=True` is handled correctly by Django's `AddField` with no default needed (nullable field).
+- **Modifications Matrix:**
+  - `apps/backend/apps/events/migrations/0005_evidence_r2_quarantine_key_evidence_upload_status.py` — Created by `makemigrations`; adds `r2_quarantine_key` (nullable CharField, max_length=1000) and `upload_status` (CharField, max_length=20, choices, default='url_based', db_index=True) to `Evidence`.
+- **Decision Logic:**
+  - Used `uv run python manage.py makemigrations events` (scoped to the `events` app) rather than `makemigrations` globally to avoid accidentally picking up unrelated pending model changes in other apps.
+  - Applied with `uv run python manage.py migrate` which shows `Applying events.0005... OK`, confirming the migration is valid SQL against the local SQLite DB.
+  - The migration is backwards-compatible: `upload_status` has `default='url_based'` so Django applies the default to all existing rows during the `AddField` operation; `r2_quarantine_key` is nullable so it requires no default.
+  - Ran the full test suite (`uv run pytest`) post-migration: 40/40 pass (the 2 previously failing tests — `test_evidence_creation` and `test_search_events` — now pass because the test DB schema matches the model).
+- **Result Status:** Migration generated and applied cleanly. 40/40 backend tests pass (up from 38/40 before this migration). Committed as `2cb3938` on `feature/secure-evidence-upload`.
