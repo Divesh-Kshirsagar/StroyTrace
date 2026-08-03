@@ -401,3 +401,21 @@
   - `celery-worker` deliberately carries explicit Postgres and Redis environment vars in addition to `env_file` so the service works correctly even if a developer's `.env` file is missing those keys — the explicit vars act as a reliable override.
   - The `redis` service is not made a dependency of `backend` (only `celery-worker` depends on it) since Django can start without Redis; the Celery broker is only needed when tasks are dispatched.
 - **Result Status:** `docker-compose.dev.yml` validated via file review. YAML structure is correct. Committed on `feature/secure-evidence-upload` as `f1023c6`.
+
+## [2026-08-03 04:00] - Commit: a96b7c8 - Tasks: 2.1, 2.2, 2.3 — Add upload_status and r2_quarantine_key to Evidence model
+
+- **Objective:** Add `UPLOAD_STATUS_CHOICES`, `upload_status` CharField, and `r2_quarantine_key` nullable CharField to the `Evidence` model in `apps/backend/apps/events/models.py`, as the schema foundation for the secure direct-to-cloud upload feature.
+- **Assumptions Declared:**
+  - No migration is generated in this task — that is Task 2.4.
+  - The 2 pre-existing tests (`test_evidence_creation`, `test_search_events`) now fail due to the missing migration (the test DB schema is built from migrations, not from model introspection). This is expected and correct; they will pass once Task 2.4 creates the migration.
+  - `upload_status` uses `max_length=20` to accommodate the longest choice value (`pending_upload` = 14 chars) with room for future values.
+  - `db_index=True` is placed directly on the `upload_status` field (not in `Meta.indexes`) because it is a single-column index with no compound ordering requirement.
+  - `r2_quarantine_key` is `blank=True, null=True` — blank for admin forms, null for DB nullability — which is the correct Django pattern for optional string fields used to track transient state (the key is cleared to NULL after successful processing).
+- **Modifications Matrix:**
+  - `apps/backend/apps/events/models.py` — Added `UPLOAD_STATUS_CHOICES` list (5 tuples) and two new fields to `Evidence`: `upload_status` (CharField, max_length=20, choices, default='url_based', db_index=True) and `r2_quarantine_key` (CharField, max_length=1000, blank=True, null=True).
+- **Decision Logic:**
+  - `UPLOAD_STATUS_CHOICES` is defined as a class-level constant on `Evidence` (not a module-level constant) to keep it co-located with the field it describes and make it accessible as `Evidence.UPLOAD_STATUS_CHOICES` from anywhere.
+  - `default='url_based'` ensures all existing rows will receive this value in the backwards-compatible migration in Task 2.4, satisfying R4.2 without a data migration.
+  - `r2_quarantine_key` stores the R2 object key string (e.g. `pending/{event_id}/{evidence_id}/filename.jpg`) which can be up to 1024 bytes per AWS S3/R2 spec — max_length=1000 matches the design doc and leaves a safe margin.
+  - `source_url` intentionally left as `URLField` with no blank/null — during `pending_upload`/`processing` states the field holds an empty string, which URLField allows. The design doc explicitly states "source_url is an empty string" during those states.
+- **Result Status:** Model fields added. `django.check` passes (2 silenced). 38/40 backend tests pass; the 2 failures are the expected missing-migration failures that will be resolved by Task 2.4.
