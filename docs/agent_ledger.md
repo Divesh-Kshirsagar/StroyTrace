@@ -375,3 +375,13 @@
 - **Decision Logic:** `django-environ` was introduced alongside the existing `python-decouple` rather than replacing it, because replacing all decouple calls would be a wide-blast refactor unrelated to this task's scope. The `base.py` settings file reads `.env.test` as a fallback when no `.env` exists — this is needed because `pytest-django` triggers Django settings loading during `pytest_load_initial_conftests` (before any project conftest code runs), so the settings file itself must handle the fallback rather than relying on conftest fixtures. `R2_ENDPOINT_URL`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` deliberately have no defaults so misconfigured production deployments fail loudly at startup.
 - **Result Status:** `python manage.py check` (with R2 env vars set) returns "no issues (2 silenced)". All 40 backend tests pass with `config.settings.base` as the settings module.
 
+
+## [2026-08-01 00:00] - Commit: 445c6c7 - Task: 1.5 — Verify .env.example contains all new R2 and Celery keys
+
+- **Objective:** Confirm `apps/backend/.env.example` includes all 8 new environment variable keys required by the secure evidence upload feature (6 R2 keys + 2 Celery/Redis keys), with placeholder values and descriptive section comments.
+- **Assumptions Declared:** The keys were already written to `.env.example` as part of Task 1.4 (commit `dd24cd9`) when the `config/settings/base.py` was created. No net-new changes to any file were required this turn.
+- **Modifications Matrix:**
+  - No files modified — all 8 keys were already present in `apps/backend/.env.example` from Task 1.4.
+- **Decision Logic:** Inspected `apps/backend/.env.example` (lines 30–41) and confirmed the presence of all 8 required keys: `R2_ENDPOINT_URL`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_QUARANTINE_BUCKET`, `R2_PRODUCTION_BUCKET`, `R2_CDN_DOMAIN` (under a "Cloudflare R2" section), and `REDIS_URL`, `CELERY_TASK_ALWAYS_EAGER` (under a "Redis / Celery" section). The frontend `.env.example` correctly contains no R2/Redis keys since those are backend-only concerns.
+- **Result Status:** Acceptance criteria met — all 8 keys with placeholder values confirmed present in `apps/backend/.env.example`.
+
