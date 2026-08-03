@@ -350,3 +350,28 @@
 - **Decision Logic:** The canonical Celery+Django pattern requires `config/__init__.py` to import the `app` object from `config/celery.py`. This guarantees Django's module loading (triggered by `DJANGO_SETTINGS_MODULE`) pulls in the Celery app before any `@shared_task` decorators are evaluated, preventing the "no app" error that arises when tasks are registered before the app is instantiated. The `__all__` tuple explicitly declares the public API of the config package.
 - **Result Status:** `from config import celery_app` returns `<Celery config at ...>` without error. All 40 existing backend tests pass (`40 passed, 39 warnings`).
 
+
+## [2026-08-03 02:00] - Commit: 45c9b5c - Task: 1.4 Add R2 and Celery settings to config/settings/base.py
+
+- **Objective:** Create `config/settings/base.py` (splitting the flat `config/settings.py` into a settings package) and add R2 + Celery settings using `django-environ`, as required by the secure-evidence-upload feature.
+- **Assumptions Declared:**
+  - The flat `config/settings.py` must be preserved (not deleted) since it's still referenced by existing non-pytest entrypoints until all references are migrated.
+  - `django-environ` must be added as a pinned dependency (`>=0.11.2,<0.12`) since the existing codebase used `python-decouple` only. Both coexist: decouple handles pre-existing keys, environ handles new R2/Celery keys.
+  - `R2_ENDPOINT_URL`, `R2_ACCESS_KEY_ID`, and `R2_SECRET_ACCESS_KEY` must have no default — they raise `ImproperlyConfigured` if absent, forcing explicit environment configuration.
+  - `pytest.ini` must be updated from `config.settings` to `config.settings.base` so the test suite hits the new settings module.
+  - `wsgi.py`, `asgi.py`, and `manage.py` must also be updated to `config.settings.base` so production and dev server entrypoints use the new module.
+  - `.env.test` (gitignored) provides placeholder R2 values so the settings module loads cleanly in CI/local test runs where no `.env` exists.
+- **Modifications Matrix:**
+  - `apps/backend/pyproject.toml` — Added `django-environ>=0.11.2,<0.12` to runtime dependencies.
+  - `apps/backend/config/settings/__init__.py` — Created (package marker).
+  - `apps/backend/config/settings/base.py` — Created; full migration of `config/settings.py` content plus new R2 and Celery settings block using `django-environ`.
+  - `apps/backend/config/wsgi.py` — Updated `DJANGO_SETTINGS_MODULE` default to `config.settings.base`.
+  - `apps/backend/config/asgi.py` — Updated `DJANGO_SETTINGS_MODULE` default to `config.settings.base`.
+  - `apps/backend/manage.py` — Updated `DJANGO_SETTINGS_MODULE` default to `config.settings.base`.
+  - `apps/backend/pytest.ini` — Updated `DJANGO_SETTINGS_MODULE` from `config.settings` to `config.settings.base`.
+  - `apps/backend/conftest.py` — Added `pytest_configure` hook (sets R2 placeholder env vars before settings load); restructured to keep `api_client` fixture.
+  - `apps/backend/.env.example` — Appended R2 and Celery keys documentation.
+  - `apps/backend/.env.test` — Created locally (gitignored) with placeholder R2 values for test env.
+- **Decision Logic:** `django-environ` was introduced alongside the existing `python-decouple` rather than replacing it, because replacing all decouple calls would be a wide-blast refactor unrelated to this task's scope. The `base.py` settings file reads `.env.test` as a fallback when no `.env` exists — this is needed because `pytest-django` triggers Django settings loading during `pytest_load_initial_conftests` (before any project conftest code runs), so the settings file itself must handle the fallback rather than relying on conftest fixtures. `R2_ENDPOINT_URL`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` deliberately have no defaults so misconfigured production deployments fail loudly at startup.
+- **Result Status:** `python manage.py check` (with R2 env vars set) returns "no issues (2 silenced)". All 40 backend tests pass with `config.settings.base` as the settings module.
+

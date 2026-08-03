@@ -9,6 +9,7 @@ dependencies = [
     "celery>=5.4.0,<5.5",
     "django>=6.0.7",
     "django-cors-headers>=4.9.0",
+    "django-environ>=0.11.2,<0.12",
     "django-ninja>=1.6.2",
     "django-ratelimit>=4.1.0",
     "email-validator>=2.3.0",
