@@ -337,3 +337,16 @@
 - **Decision Logic:** The standard Celery + Django integration pattern requires three things in `celery.py`: (1) set `DJANGO_SETTINGS_MODULE` before any Django import via `os.environ.setdefault`, (2) instantiate `Celery` with the project name, (3) call `config_from_object` pointing at `django.conf:settings` with namespace `CELERY`. The `setdefault` guard ensures test runs that already set `DJANGO_SETTINGS_MODULE` (e.g. to `config.settings`) are not overridden. The module is intentionally minimal — `autodiscover_tasks` is deferred to Task 5.3 as specified.
 - **Result Status:** File exists at `apps/backend/config/celery.py`. Python syntax check passes. `celery` is importable. All 40 existing backend tests continue to pass.
 
+
+## [2026-08-03 01:00] - Commit: d65a043 - Task: 1.3 Expose celery_app in config/__init__.py
+
+- **Objective:** Update `apps/backend/config/__init__.py` so that `from config import celery_app` works, enabling Django's startup to always import the Celery app instance and ensuring `shared_task` decorators bind to the correct app.
+- **Assumptions Declared:**
+  - `config/celery.py` already exists (Task 1.2). The `__init__.py` was empty before this change.
+  - The standard Django+Celery integration requires the Celery app to be imported at package init time so that `shared_task` uses the correct app rather than creating an orphaned default app.
+  - No `autodiscover_tasks()` call is added here; that remains deferred to Task 5.3.
+- **Modifications Matrix:**
+  - `apps/backend/config/__init__.py` — Added `from .celery import app as celery_app` and `__all__ = ("celery_app",)`.
+- **Decision Logic:** The canonical Celery+Django pattern requires `config/__init__.py` to import the `app` object from `config/celery.py`. This guarantees Django's module loading (triggered by `DJANGO_SETTINGS_MODULE`) pulls in the Celery app before any `@shared_task` decorators are evaluated, preventing the "no app" error that arises when tasks are registered before the app is instantiated. The `__all__` tuple explicitly declares the public API of the config package.
+- **Result Status:** `from config import celery_app` returns `<Celery config at ...>` without error. All 40 existing backend tests pass (`40 passed, 39 warnings`).
+
