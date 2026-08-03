@@ -385,3 +385,19 @@
 - **Decision Logic:** Inspected `apps/backend/.env.example` (lines 30–41) and confirmed the presence of all 8 required keys: `R2_ENDPOINT_URL`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_QUARANTINE_BUCKET`, `R2_PRODUCTION_BUCKET`, `R2_CDN_DOMAIN` (under a "Cloudflare R2" section), and `REDIS_URL`, `CELERY_TASK_ALWAYS_EAGER` (under a "Redis / Celery" section). The frontend `.env.example` correctly contains no R2/Redis keys since those are backend-only concerns.
 - **Result Status:** Acceptance criteria met — all 8 keys with placeholder values confirmed present in `apps/backend/.env.example`.
 
+
+## [2026-08-03 03:00] - Commit: f1023c6 - Task: 1.6 Add redis and celery-worker services to docker-compose.dev.yml
+
+- **Objective:** Add `redis:7-alpine` and `celery-worker` services to `docker-compose.dev.yml`, add a `healthcheck` to the existing `db` service, and inject `REDIS_URL` into the `backend` environment so local development supports Celery out of the box.
+- **Assumptions Declared:**
+  - The `db` service had no healthcheck, which is required for the `celery-worker` to depend on it with `service_healthy`. Added `pg_isready -U postgres` with the same interval/timeout/retries as the redis healthcheck (5s/3s/5).
+  - `celery-worker` uses `env_file: ./apps/backend/.env` so it picks up R2 and any other runtime secrets from `.env` (which is gitignored), and additionally declares the explicit Postgres + Redis vars via the `environment` block for clarity and Docker Compose override semantics.
+  - The `backend` service needs `REDIS_URL` added to its environment so Django settings (`CELERY_BROKER_URL`, `CELERY_RESULT_BACKEND`) resolve correctly when running `manage.py` commands inside the container.
+  - Docker Compose `version: '3.8'` supports `service_healthy` conditions natively.
+- **Modifications Matrix:**
+  - `docker-compose.dev.yml` — Added `healthcheck` to `db`; added `REDIS_URL=redis://redis:6379/0` to `backend.environment`; added full `redis` service with healthcheck; added full `celery-worker` service with `depends_on` using `service_healthy` conditions for both `redis` and `db`.
+- **Decision Logic:**
+  - The `db` healthcheck uses `CMD-SHELL` + `pg_isready -U postgres` rather than a TCP port check because `pg_isready` validates that Postgres is accepting connections (not just that the port is bound), preventing Celery from attempting DB connections before the server is ready to accept them.
+  - `celery-worker` deliberately carries explicit Postgres and Redis environment vars in addition to `env_file` so the service works correctly even if a developer's `.env` file is missing those keys — the explicit vars act as a reliable override.
+  - The `redis` service is not made a dependency of `backend` (only `celery-worker` depends on it) since Django can start without Redis; the Celery broker is only needed when tasks are dispatched.
+- **Result Status:** `docker-compose.dev.yml` validated via file review. YAML structure is correct. Committed on `feature/secure-evidence-upload` as `f1023c6`.
