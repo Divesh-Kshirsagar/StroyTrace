@@ -436,3 +436,19 @@
   - The migration is backwards-compatible: `upload_status` has `default='url_based'` so Django applies the default to all existing rows during the `AddField` operation; `r2_quarantine_key` is nullable so it requires no default.
   - Ran the full test suite (`uv run pytest`) post-migration: 40/40 pass (the 2 previously failing tests — `test_evidence_creation` and `test_search_events` — now pass because the test DB schema matches the model).
 - **Result Status:** Migration generated and applied cleanly. 40/40 backend tests pass (up from 38/40 before this migration). Committed as `2cb3938` on `feature/secure-evidence-upload`.
+
+## [2026-08-03 15:00] - Commit: a57b05f - Task: 2.5 — Expose upload_status in EvidenceSchema
+
+- **Objective:** Add `upload_status: str = 'url_based'` to `EvidenceSchema` in `apps/backend/apps/events/schemas.py` so API consumers receive the field on every serialized `Evidence` response.
+- **Assumptions Declared:**
+  - `upload_status` is a `CharField` on the `Evidence` model (max_length=20, choices), so `str` is the correct Python type annotation.
+  - A default of `'url_based'` is supplied so that any schema usage where the field is not explicitly set (e.g., `EvidenceSchema(**data)` with legacy data that predates the field) continues to work without a `ValidationError`. This matches the model default and the backwards-compatibility requirement from the design doc.
+  - `r2_quarantine_key` is deliberately NOT added to `EvidenceSchema` — it is internal state used by the Celery worker and must not be exposed to API consumers.
+  - All 40 existing backend tests were run post-change and pass without modification — confirming the new field serializes correctly from the ORM and does not break any existing deserialization path.
+- **Modifications Matrix:**
+  - `apps/backend/apps/events/schemas.py` — Added `upload_status: str = 'url_based'` field to `EvidenceSchema`, positioned between `display_order` and `created_at`.
+- **Decision Logic:**
+  - The field is placed between `display_order` and `created_at` to group lifecycle/state fields together (logical ordering).
+  - Using `str` rather than a `Literal[...]` union type is intentional: it keeps the schema open for future `upload_status` values without requiring a schema migration, and it matches the approach used for `media_type` and `status` elsewhere in the schema file.
+  - The default `'url_based'` means Ninja's ORM serialization (`from_orm=True`) reads the real DB value for records that have the field, while still being safe for in-memory schema construction without a full ORM object.
+- **Result Status:** 40/40 backend tests pass. Committed as `a57b05f` on `feature/secure-evidence-upload`.

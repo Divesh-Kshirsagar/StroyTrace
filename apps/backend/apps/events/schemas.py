@@ -1,29 +1,32 @@
 from datetime import date, datetime
-from typing import List, Optional
-from ninja import Schema, ModelSchema
 from uuid import UUID
-from apps.topics.schemas import TopicSchema
+
+from ninja import Schema
+
 from apps.feeds.schemas import CreatorSummarySchema
+from apps.topics.schemas import TopicSchema
+
 
 class EvidenceSchema(Schema):
     id: UUID
     media_type: str
     source_url: str
-    thumbnail_url: Optional[str] = None
-    caption: Optional[str] = None
+    thumbnail_url: str | None = None
+    caption: str | None = None
     display_order: int
+    upload_status: str = 'url_based'
     created_at: datetime
 
 class EvidenceCreateSchema(Schema):
     media_type: str
     source_url: str
-    thumbnail_url: Optional[str] = None
-    caption: Optional[str] = None
-    display_order: Optional[int] = 0
+    thumbnail_url: str | None = None
+    caption: str | None = None
+    display_order: int | None = 0
 
 class EvidenceUpdateSchema(Schema):
-    caption: Optional[str] = None
-    display_order: Optional[int] = None
+    caption: str | None = None
+    display_order: int | None = None
 
 class NarrativeSchema(Schema):
     id: UUID
@@ -34,20 +37,20 @@ class NarrativeSchema(Schema):
 
 class NarrativeCreateUpdateSchema(Schema):
     content: str
-    is_published: Optional[bool] = False
+    is_published: bool | None = False
 
 class EventSchema(Schema):
     id: UUID
     title: str
     slug: str
-    summary: Optional[str] = None
+    summary: str | None = None
     start_date: date
-    end_date: Optional[date] = None
+    end_date: date | None = None
     status: str
     created_at: datetime
     updated_at: datetime
     lead_investigator: CreatorSummarySchema
-    topics: List[TopicSchema]
+    topics: list[TopicSchema]
     
     @staticmethod
     def resolve_lead_investigator(obj):
@@ -60,28 +63,28 @@ class EventSchema(Schema):
 
 class EventFullSchema(Schema):
     event: EventSchema
-    narrative: Optional[NarrativeSchema] = None
-    evidence: List[EvidenceSchema]
+    narrative: NarrativeSchema | None = None
+    evidence: list[EvidenceSchema]
 
 class EventCreateSchema(Schema):
     title: str
-    summary: Optional[str] = None
+    summary: str | None = None
     start_date: date
-    end_date: Optional[date] = None
-    topic_slugs: List[str] = []
+    end_date: date | None = None
+    topic_slugs: list[str] = []
 
 class EventUpdateSchema(Schema):
-    title: Optional[str] = None
-    summary: Optional[str] = None
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
-    status: Optional[str] = None
+    title: str | None = None
+    summary: str | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+    status: str | None = None
 
 class EventStatusUpdateSchema(Schema):
     status: str
 
 class EvidenceReorderSchema(Schema):
-    evidence_ids: List[UUID]
+    evidence_ids: list[UUID]
 
 class MessageSchema(Schema):
     message: str
