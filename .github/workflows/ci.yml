@@ -51,7 +51,7 @@ jobs:
       - name: Install dependencies
         run: cd apps/frontend && pnpm install
       - name: Run Biome Check
-        run: cd apps/frontend && pnpm dlx @biomejs/biome ci .
+        run: cd apps/frontend && pnpm dlx @biomejs/biome@1.8.3 ci .
       - name: Run Unit Tests
         run: cd apps/frontend && pnpm test
       - name: Run E2E Tests
