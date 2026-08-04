@@ -45,6 +45,12 @@
     "indentWidth": 2
   },
   "files": {
-    "ignore": ["node_modules", ".next", "generated", "components/ui"]
+    "ignore": [
+      "node_modules",
+      ".next",
+      "generated",
+      "components/ui",
+      "test-results"
+    ]
   }
 }
