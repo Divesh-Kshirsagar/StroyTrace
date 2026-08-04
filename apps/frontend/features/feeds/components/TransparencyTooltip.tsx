@@ -1,27 +1,29 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { appsFeedsRoutersGetEventTransparency } from '@/generated';
-import type { EventTransparencyResponse } from '@/generated';
+import { appsFeedsRoutersGetEventTransparency } from "@/generated";
+import type { EventTransparencyResponse } from "@/generated";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface TransparencyTooltipProps {
   eventSlug: string;
 }
 
 const STATUS_ICON: Record<string, string> = {
-  positive: '✓',
-  neutral: '–',
-  warning: '⚠',
+  positive: "✓",
+  neutral: "–",
+  warning: "⚠",
 };
 
 const STATUS_CLASS: Record<string, string> = {
-  positive: 'text-green-600',
-  neutral: 'text-gray-500',
-  warning: 'text-yellow-600',
+  positive: "text-green-600",
+  neutral: "text-gray-500",
+  warning: "text-yellow-600",
 };
 
-export default function TransparencyTooltip({ eventSlug }: TransparencyTooltipProps) {
+export default function TransparencyTooltip({
+  eventSlug,
+}: TransparencyTooltipProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState<EventTransparencyResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +41,7 @@ export default function TransparencyTooltip({ eventSlug }: TransparencyTooltipPr
     if (triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
       setPopoverStyle({
-        position: 'fixed',
+        position: "fixed",
         // Sit just above the trigger button
         bottom: window.innerHeight - rect.top + 8,
         left: rect.left,
@@ -75,9 +77,9 @@ export default function TransparencyTooltip({ eventSlug }: TransparencyTooltipPr
       }
     };
     if (isOpen) {
-      document.addEventListener('mousedown', handler);
+      document.addEventListener("mousedown", handler);
     }
-    return () => document.removeEventListener('mousedown', handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, [isOpen]);
 
   // Reposition on scroll/resize so the popover doesn't drift
@@ -87,7 +89,7 @@ export default function TransparencyTooltip({ eventSlug }: TransparencyTooltipPr
       if (triggerRef.current) {
         const rect = triggerRef.current.getBoundingClientRect();
         setPopoverStyle({
-          position: 'fixed',
+          position: "fixed",
           bottom: window.innerHeight - rect.top + 8,
           left: rect.left,
           width: 288,
@@ -95,11 +97,11 @@ export default function TransparencyTooltip({ eventSlug }: TransparencyTooltipPr
         });
       }
     };
-    window.addEventListener('scroll', reposition, { passive: true });
-    window.addEventListener('resize', reposition);
+    window.addEventListener("scroll", reposition, { passive: true });
+    window.addEventListener("resize", reposition);
     return () => {
-      window.removeEventListener('scroll', reposition);
-      window.removeEventListener('resize', reposition);
+      window.removeEventListener("scroll", reposition);
+      window.removeEventListener("resize", reposition);
     };
   }, [isOpen]);
 
@@ -109,13 +111,13 @@ export default function TransparencyTooltip({ eventSlug }: TransparencyTooltipPr
       style={popoverStyle}
       className="rounded-lg shadow-xl bg-white border border-gray-200 p-4 text-sm"
     >
-      {isLoading && (
-        <p className="text-gray-400 text-center py-2">Loading…</p>
-      )}
+      {isLoading && <p className="text-gray-400 text-center py-2">Loading…</p>}
 
       {!isLoading && data && (
         <>
-          <h4 className="font-semibold text-gray-800 mb-1">Why is this trending?</h4>
+          <h4 className="font-semibold text-gray-800 mb-1">
+            Why is this trending?
+          </h4>
           <p className="text-xs text-gray-500 mb-3">
             Clarity is open source. Our ranking prioritises sustained,
             high-quality engagement over viral outrage.
@@ -123,14 +125,18 @@ export default function TransparencyTooltip({ eventSlug }: TransparencyTooltipPr
 
           {data.event_factors.length > 0 && (
             <>
-              <h5 className="font-medium text-gray-700 mb-1">This event has:</h5>
+              <h5 className="font-medium text-gray-700 mb-1">
+                This event has:
+              </h5>
               <ul className="space-y-1 mb-3">
                 {data.event_factors.map((f) => (
                   <li
                     key={f.factor}
-                    className={`flex items-center gap-1.5 ${STATUS_CLASS[f.status] ?? 'text-gray-600'}`}
+                    className={`flex items-center gap-1.5 ${STATUS_CLASS[f.status] ?? "text-gray-600"}`}
                   >
-                    <span aria-hidden="true">{STATUS_ICON[f.status] ?? '·'}</span>
+                    <span aria-hidden="true">
+                      {STATUS_ICON[f.status] ?? "·"}
+                    </span>
                     {f.label}
                   </li>
                 ))}
@@ -140,14 +146,18 @@ export default function TransparencyTooltip({ eventSlug }: TransparencyTooltipPr
 
           {data.viewer_factors.length > 0 && (
             <>
-              <h5 className="font-medium text-gray-700 mb-1">Your engagement quality:</h5>
+              <h5 className="font-medium text-gray-700 mb-1">
+                Your engagement quality:
+              </h5>
               <ul className="space-y-1 mb-3">
                 {data.viewer_factors.map((f) => (
                   <li
                     key={f.factor}
-                    className={`flex items-center gap-1.5 ${STATUS_CLASS[f.status] ?? 'text-gray-600'}`}
+                    className={`flex items-center gap-1.5 ${STATUS_CLASS[f.status] ?? "text-gray-600"}`}
                   >
-                    <span aria-hidden="true">{STATUS_ICON[f.status] ?? '·'}</span>
+                    <span aria-hidden="true">
+                      {STATUS_ICON[f.status] ?? "·"}
+                    </span>
                     {f.label}
                   </li>
                 ))}
@@ -181,7 +191,7 @@ export default function TransparencyTooltip({ eventSlug }: TransparencyTooltipPr
       </button>
 
       {/* Render the popover outside all overflow:hidden ancestors */}
-      {typeof document !== 'undefined' && popover
+      {typeof document !== "undefined" && popover
         ? createPortal(popover, document.body)
         : null}
     </>

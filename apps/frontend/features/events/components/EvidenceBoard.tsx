@@ -1,4 +1,4 @@
-'use client';
+"use client";
 /**
  * EvidenceBoard — public-facing read-only evidence grid.
  *
@@ -12,12 +12,11 @@
  *         stopping when all reach a terminal state (processed | failed | url_based)
  */
 
-import { useEffect, useRef } from 'react';
-import { EvidenceSchema } from '@/generated';
-import { Card } from '@/shared/components/ui/card';
+import type { EvidenceSchema } from "@/generated";
+import { Card } from "@/shared/components/ui/card";
+import { useEffect, useRef } from "react";
 
 const POLL_INTERVAL_MS = 3000;
-
 
 interface EvidenceBoardProps {
   evidence: EvidenceSchema[];
@@ -41,7 +40,9 @@ export default function EvidenceBoard({
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    const hasProcessing = evidence.some((e) => e.upload_status === 'processing');
+    const hasProcessing = evidence.some(
+      (e) => e.upload_status === "processing",
+    );
 
     if (hasProcessing && onRefetch) {
       // Start polling if not already running
@@ -71,7 +72,8 @@ export default function EvidenceBoard({
   // ------------------------------------------------------------------
   const visibleEvidence = publicView
     ? evidence.filter(
-        (e) => e.upload_status === 'url_based' || e.upload_status === 'processed',
+        (e) =>
+          e.upload_status === "url_based" || e.upload_status === "processed",
       )
     : evidence;
 
@@ -86,12 +88,12 @@ export default function EvidenceBoard({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {visibleEvidence.map((item) => {
-        const status = item.upload_status ?? 'url_based';
+        const status = item.upload_status ?? "url_based";
 
         // ------------------------------------------------------------------
         // R6.1: Processing state — spinner, no broken img/link
         // ------------------------------------------------------------------
-        if (status === 'processing') {
+        if (status === "processing") {
           return (
             <Card
               key={item.id}
@@ -109,7 +111,9 @@ export default function EvidenceBoard({
               </div>
               {item.caption && (
                 <div className="p-3 border-t border-zinc-200 dark:border-zinc-800">
-                  <p className="text-sm line-clamp-2 text-zinc-500">{item.caption}</p>
+                  <p className="text-sm line-clamp-2 text-zinc-500">
+                    {item.caption}
+                  </p>
                 </div>
               )}
             </Card>
@@ -119,7 +123,7 @@ export default function EvidenceBoard({
         // ------------------------------------------------------------------
         // R6.2: Failed state — error card with optional remove button
         // ------------------------------------------------------------------
-        if (status === 'failed') {
+        if (status === "failed") {
           return (
             <Card
               key={item.id}
@@ -165,7 +169,7 @@ export default function EvidenceBoard({
               {item.thumbnail_url ? (
                 <img
                   src={item.thumbnail_url}
-                  alt={item.caption || 'Evidence'}
+                  alt={item.caption || "Evidence"}
                   className="w-full h-full object-cover transition-transform group-hover:scale-105"
                 />
               ) : (

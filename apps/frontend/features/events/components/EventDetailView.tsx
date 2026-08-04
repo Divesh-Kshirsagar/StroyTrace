@@ -1,8 +1,8 @@
-import { EventFullSchema } from '@/generated';
-import NarrativeRenderer from './NarrativeRenderer';
-import EvidenceBoard from './EvidenceBoard';
-import TrendingBreakdown from './TrendingBreakdown';
-import CreatorBadge from '@/shared/components/CreatorBadge';
+import type { EventFullSchema } from "@/generated";
+import CreatorBadge from "@/shared/components/CreatorBadge";
+import EvidenceBoard from "./EvidenceBoard";
+import NarrativeRenderer from "./NarrativeRenderer";
+import TrendingBreakdown from "./TrendingBreakdown";
 
 interface EventDetailViewProps {
   data: EventFullSchema;
@@ -10,9 +10,11 @@ interface EventDetailViewProps {
 
 export default function EventDetailView({ data }: EventDetailViewProps) {
   const { event, narrative, evidence } = data;
-  
-  const startDate = new Date(event.start_date).toLocaleDateString(undefined, { 
-    year: 'numeric', month: 'long', day: 'numeric' 
+
+  const startDate = new Date(event.start_date).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
   return (
@@ -23,17 +25,17 @@ export default function EventDetailView({ data }: EventDetailViewProps) {
           <span className="text-zinc-300 dark:text-zinc-700 text-sm">•</span>
           <time className="text-sm text-zinc-500 font-medium">{startDate}</time>
         </div>
-        
+
         <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-6 leading-tight">
           {event.title}
         </h1>
-        
+
         {event.summary && (
           <p className="text-xl text-zinc-600 dark:text-zinc-400 leading-relaxed mb-6">
             {event.summary}
           </p>
         )}
-        
+
         {/* We would render TopicBadges here if topics were populated in EventFullSchema */}
       </header>
 
@@ -42,14 +44,16 @@ export default function EventDetailView({ data }: EventDetailViewProps) {
           <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-400 mb-6 border-b border-zinc-200 dark:border-zinc-800 pb-2">
             The Narrative
           </h2>
-          
+
           {narrative?.content ? (
             <NarrativeRenderer content={narrative.content} />
           ) : (
-            <p className="text-zinc-500 italic">No narrative has been published for this investigation yet.</p>
+            <p className="text-zinc-500 italic">
+              No narrative has been published for this investigation yet.
+            </p>
           )}
         </div>
-        
+
         <div className="lg:col-span-4">
           <div className="sticky top-8">
             <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-400 mb-6 border-b border-zinc-200 dark:border-zinc-800 pb-2 flex items-center justify-between">
@@ -58,12 +62,12 @@ export default function EventDetailView({ data }: EventDetailViewProps) {
                 {evidence.length}
               </span>
             </h2>
-            
+
             <div className="flex flex-col gap-4">
               <EvidenceBoard evidence={evidence} />
             </div>
 
-            {event.status === 'published' && (
+            {event.status === "published" && (
               <div className="mt-8">
                 <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-400 mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-2">
                   Engagement

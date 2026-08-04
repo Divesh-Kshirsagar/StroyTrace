@@ -1,9 +1,12 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import { PaginatedEventSummarySchema, EventSummarySchema } from '@/generated';
-import EventCardGrid from './EventCardGrid';
-import LoadMoreButton from '@/shared/components/LoadMoreButton';
+import type {
+  EventSummarySchema,
+  PaginatedEventSummarySchema,
+} from "@/generated";
+import LoadMoreButton from "@/shared/components/LoadMoreButton";
+import { useCallback, useState } from "react";
+import EventCardGrid from "./EventCardGrid";
 
 // Maximum cards kept in the DOM at any time.
 // When exceeded, the oldest items are trimmed to free memory.
@@ -24,9 +27,15 @@ export default function FeedView({
   emptyTitle,
   emptyDescription,
 }: FeedViewProps) {
-  const [items, setItems] = useState<EventSummarySchema[]>(initialData?.items ?? []);
-  const [nextCursor, setNextCursor] = useState<string | null>(initialData?.next_cursor ?? null);
-  const [hasNext, setHasNext] = useState<boolean>(initialData?.has_next ?? false);
+  const [items, setItems] = useState<EventSummarySchema[]>(
+    initialData?.items ?? [],
+  );
+  const [nextCursor, setNextCursor] = useState<string | null>(
+    initialData?.next_cursor ?? null,
+  );
+  const [hasNext, setHasNext] = useState<boolean>(
+    initialData?.has_next ?? false,
+  );
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   // Track whether we trimmed the top so the user knows they can scroll up for older items
   const [isTrimmed, setIsTrimmed] = useState(false);
@@ -37,7 +46,7 @@ export default function FeedView({
     setIsLoadingMore(true);
     try {
       const result = await fetchNextPage(nextCursor);
-      setItems(prev => {
+      setItems((prev) => {
         const merged = [...prev, ...result.items];
         // If we're over the ceiling, drop the oldest PAGE_SIZE from the top
         if (merged.length > MAX_ITEMS) {
@@ -49,7 +58,7 @@ export default function FeedView({
       setNextCursor(result.next_cursor ?? null);
       setHasNext(result.has_next);
     } catch (err) {
-      console.error('Failed to fetch next page', err);
+      console.error("Failed to fetch next page", err);
     } finally {
       setIsLoadingMore(false);
     }
@@ -61,9 +70,9 @@ export default function FeedView({
 
       {isTrimmed && (
         <p className="text-xs text-center text-zinc-400 mb-6">
-          Earlier results were removed to keep the page fast.{' '}
+          Earlier results were removed to keep the page fast.{" "}
           <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             className="underline hover:text-zinc-600"
           >
             Scroll to top

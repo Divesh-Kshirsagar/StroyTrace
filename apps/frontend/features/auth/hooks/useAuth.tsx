@@ -1,23 +1,35 @@
-'use client';
-import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
-import { client } from '@/generated/client.gen';
+"use client";
 import {
   appsUsersRoutersLogin,
-  appsUsersRoutersRegister,
   appsUsersRoutersLogout,
   appsUsersRoutersMe,
   appsUsersRoutersRefresh,
-} from '@/generated';
-import type { LoginRequest, RegisterRequest, UserSchema, CreatorProfileSchema } from '@/generated/types.gen';
+  appsUsersRoutersRegister,
+} from "@/generated";
+import { client } from "@/generated/client.gen";
+import type {
+  CreatorProfileSchema,
+  LoginRequest,
+  RegisterRequest,
+  UserSchema,
+} from "@/generated/types.gen";
 import {
+  clearTokens,
   getAccessToken,
   getRefreshToken,
-  storeTokens,
   storeAccessToken,
-  clearTokens,
-} from '@/shared/lib/apiClient';
+  storeTokens,
+} from "@/shared/lib/apiClient";
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
+import {
+  type ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 interface AuthContextType {
   user: UserSchema | null;
@@ -38,7 +50,8 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserSchema | null>(null);
-  const [creatorProfile, setCreatorProfile] = useState<CreatorProfileSchema | null>(null);
+  const [creatorProfile, setCreatorProfile] =
+    useState<CreatorProfileSchema | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
   const router = useRouter();
@@ -49,12 +62,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (interceptorSetUp.current) return;
     interceptorSetUp.current = true;
 
-    client.setConfig({ baseUrl: '' });
+    client.setConfig({ baseUrl: "" });
     client.interceptors.request.clear();
     client.interceptors.request.use((req) => {
       const token = getAccessToken();
       if (token) {
-        req.headers.set('Authorization', `Bearer ${token}`);
+        req.headers.set("Authorization", `Bearer ${token}`);
       }
       return req;
     });
@@ -67,8 +80,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setCreatorProfile(null);
       setSessionExpired(true);
     };
-    window.addEventListener('session-expired', handleExpired);
-    return () => window.removeEventListener('session-expired', handleExpired);
+    window.addEventListener("session-expired", handleExpired);
+    return () => window.removeEventListener("session-expired", handleExpired);
   }, []);
 
   // ── Load user on mount ─────────────────────────────────────────────────
@@ -93,7 +106,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const { data } = await appsUsersRoutersMe();
-      if (!data) throw new Error('empty response');
+      if (!data) throw new Error("empty response");
       setUser(data);
       setCreatorProfile(data.creator_profile ?? null);
     } catch {
@@ -137,9 +150,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // ── login ──────────────────────────────────────────────────────────────
   const login = async (data: LoginRequest) => {
-    const { data: resData, error } = await appsUsersRoutersLogin({ body: data } as any);
+    const { data: resData, error } = await appsUsersRoutersLogin({
+      body: data,
+    } as any);
     if (!resData || error) {
-      const msg = (error as any)?.detail ?? 'Login failed';
+      const msg = (error as any)?.detail ?? "Login failed";
       throw new Error(msg);
     }
 
@@ -149,14 +164,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSessionExpired(false);
     setIsLoading(false);
 
-    router.push(`/@${resData.user.creator_profile?.handle ?? ''}`);
+    router.push(`/@${resData.user.creator_profile?.handle ?? ""}`);
   };
 
   // ── register ──────────────────────────────────────────────────────────
   const register = async (data: RegisterRequest) => {
-    const { data: resData, error } = await appsUsersRoutersRegister({ body: data } as any);
+    const { data: resData, error } = await appsUsersRoutersRegister({
+      body: data,
+    } as any);
     if (!resData || error) {
-      const msg = (error as any)?.detail ?? 'Registration failed';
+      const msg = (error as any)?.detail ?? "Registration failed";
       throw new Error(msg);
     }
 
@@ -166,37 +183,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSessionExpired(false);
     setIsLoading(false);
 
-    router.push(`/@${resData.user.creator_profile?.handle ?? ''}`);
+    router.push(`/@${resData.user.creator_profile?.handle ?? ""}`);
   };
 
   // ── logout ─────────────────────────────────────────────────────────────
   const logout = async () => {
     try {
-      const refreshToken = Cookies.get('refresh_token');
+      const refreshToken = Cookies.get("refresh_token");
       if (refreshToken) {
-        await appsUsersRoutersLogout({ body: { refresh_token: refreshToken } } as any);
+        await appsUsersRoutersLogout({
+          body: { refresh_token: refreshToken },
+        } as any);
       }
     } finally {
       clearTokens();
       setUser(null);
       setCreatorProfile(null);
       setSessionExpired(false);
-      router.push('/login');
+      router.push("/login");
     }
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      creatorProfile,
-      isAuthenticated: !!user,
-      isLoading,
-      sessionExpired,
-      dismissSessionExpired: () => setSessionExpired(false),
-      login,
-      register,
-      logout,
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        creatorProfile,
+        isAuthenticated: !!user,
+        isLoading,
+        sessionExpired,
+        dismissSessionExpired: () => setSessionExpired(false),
+        login,
+        register,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -204,6 +225,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within an AuthProvider');
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };

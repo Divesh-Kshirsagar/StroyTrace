@@ -1,6 +1,6 @@
-import Link from 'next/link';
-import { Search } from 'lucide-react';
-import { buttonVariants } from '@/shared/components/ui/button';
+import { buttonVariants } from "@/shared/components/ui/button";
+import { Search } from "lucide-react";
+import Link from "next/link";
 
 export default function NotFound() {
   return (
@@ -12,12 +12,12 @@ export default function NotFound() {
       <p className="text-zinc-500 dark:text-zinc-400 max-w-md mx-auto mb-8 text-lg">
         The page you're looking for doesn't exist or has been moved.
       </p>
-      
+
       <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm mx-auto">
-        <Link href="/" className={buttonVariants({ variant: 'default' })}>
+        <Link href="/" className={buttonVariants({ variant: "default" })}>
           Go to home page
         </Link>
-        <Link href="/topics" className={buttonVariants({ variant: 'outline' })}>
+        <Link href="/topics" className={buttonVariants({ variant: "outline" })}>
           Browse topics
         </Link>
       </div>

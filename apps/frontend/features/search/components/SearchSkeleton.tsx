@@ -1,5 +1,5 @@
-import { Skeleton } from '@/shared/components/ui/skeleton';
-import EventCardSkeleton from '@/features/feeds/components/EventCardSkeleton';
+import EventCardSkeleton from "@/features/feeds/components/EventCardSkeleton";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 
 export default function SearchSkeleton() {
   return (

@@ -1,10 +1,10 @@
-import Link from 'next/link';
-import { Card } from '@/shared/components/ui/card';
-import TopicBadge from '@/shared/components/TopicBadge';
-import CreatorBadge from '@/shared/components/CreatorBadge';
-import UpvoteButton from './UpvoteButton';
-import TransparencyTooltip from './TransparencyTooltip';
-import { EventSummarySchema } from '@/generated';
+import type { EventSummarySchema } from "@/generated";
+import CreatorBadge from "@/shared/components/CreatorBadge";
+import TopicBadge from "@/shared/components/TopicBadge";
+import { Card } from "@/shared/components/ui/card";
+import Link from "next/link";
+import TransparencyTooltip from "./TransparencyTooltip";
+import UpvoteButton from "./UpvoteButton";
 
 interface EventCardProps {
   event: EventSummarySchema;
@@ -12,7 +12,11 @@ interface EventCardProps {
 
 export default function EventCard({ event }: EventCardProps) {
   const eventUrl = `/@${event.lead_investigator.handle}/${event.slug}`;
-  const startDate = new Date(event.start_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  const startDate = new Date(event.start_date).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 
   return (
     <div className="group block">

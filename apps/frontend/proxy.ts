@@ -1,26 +1,28 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-const protectedRoutes = ['/dashboard', '/editor'];
-const authRoutes = ['/login', '/register'];
+const protectedRoutes = ["/dashboard", "/editor"];
+const authRoutes = ["/login", "/register"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
-  const token = request.cookies.get('access_token')?.value;
 
-  const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
+  const token = request.cookies.get("access_token")?.value;
+
+  const isProtectedRoute = protectedRoutes.some((route) =>
+    pathname.startsWith(route),
+  );
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
   if (isProtectedRoute && !token) {
     const url = request.nextUrl.clone();
-    url.pathname = '/login';
+    url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
   if (isAuthRoute && token) {
     const url = request.nextUrl.clone();
-    url.pathname = '/';
+    url.pathname = "/";
     return NextResponse.redirect(url);
   }
 
@@ -28,10 +30,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/dashboard/:path*',
-    '/editor/:path*',
-    '/login',
-    '/register'
-  ]
+  matcher: ["/dashboard/:path*", "/editor/:path*", "/login", "/register"],
 };

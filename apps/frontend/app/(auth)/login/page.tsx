@@ -1,7 +1,7 @@
-import { LoginForm } from '@/features/auth/components/LoginForm';
+import { LoginForm } from "@/features/auth/components/LoginForm";
 
 export const metadata = {
-  title: 'Log in - Clarity',
+  title: "Log in - Clarity",
 };
 
 export default function LoginPage() {

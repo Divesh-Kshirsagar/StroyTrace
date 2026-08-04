@@ -1,9 +1,12 @@
-'use client';
-import { ErrorBoundary } from 'react-error-boundary';
-import { Button } from '@/shared/components/ui/button';
-import { AlertCircle } from 'lucide-react';
+"use client";
+import { Button } from "@/shared/components/ui/button";
+import { AlertCircle } from "lucide-react";
+import { ErrorBoundary } from "react-error-boundary";
 
-function ErrorFallback({ error, resetErrorBoundary }: { error: any, resetErrorBoundary: () => void }) {
+function ErrorFallback({
+  error,
+  resetErrorBoundary,
+}: { error: any; resetErrorBoundary: () => void }) {
   return (
     <div className="w-full flex flex-col items-center justify-center p-8 text-center bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-red-100 dark:border-red-900/30">
       <AlertCircle className="w-10 h-10 text-red-500 mb-4" />
@@ -11,15 +14,17 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: any, resetErrorBo
       <p className="text-zinc-500 dark:text-zinc-400 mb-6 text-sm max-w-md">
         {error.message || "We couldn't load this content"}
       </p>
-      <Button variant="outline" onClick={resetErrorBoundary}>Try Again</Button>
+      <Button variant="outline" onClick={resetErrorBoundary}>
+        Try Again
+      </Button>
     </div>
   );
 }
 
-export default function ClientErrorBoundary({ children }: { children: React.ReactNode }) {
+export default function ClientErrorBoundary({
+  children,
+}: { children: React.ReactNode }) {
   return (
-    <ErrorBoundary FallbackComponent={ErrorFallback}>
-      {children}
-    </ErrorBoundary>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>{children}</ErrorBoundary>
   );
 }

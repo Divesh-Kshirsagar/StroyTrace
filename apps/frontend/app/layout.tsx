@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import React from "react";
 import { Geist, Geist_Mono } from "next/font/google";
+import React from "react";
 import "./globals.css";
 
-import { AuthProvider } from "@/features/auth/hooks/useAuth";
 import SessionExpiredModal from "@/features/auth/components/SessionExpiredModal";
-import Analytics from '@/shared/components/Analytics';
-import Navbar from '@/shared/components/Navbar';
-import '@/shared/lib/apiClient';
+import { AuthProvider } from "@/features/auth/hooks/useAuth";
+import Analytics from "@/shared/components/Analytics";
+import Navbar from "@/shared/components/Navbar";
+import "@/shared/lib/apiClient";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

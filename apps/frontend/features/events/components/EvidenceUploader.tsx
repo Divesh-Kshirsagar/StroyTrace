@@ -1,4 +1,7 @@
-'use client';
+"use client";
+import AwsS3 from "@uppy/aws-s3";
+import Uppy from "@uppy/core";
+import { Dashboard } from "@uppy/react";
 /**
  * EvidenceUploader — two-tab modal for the Event Editor evidence panel.
  *
@@ -18,25 +21,27 @@
  *
  * These reject the file BEFORE any API call, satisfying the spec's pre-flight check.
  */
-import { useState, useEffect, useRef } from 'react';
-import Uppy from '@uppy/core';
-import AwsS3 from '@uppy/aws-s3';
-import { Dashboard } from '@uppy/react';
-import '@uppy/core/dist/style.min.css';
-import '@uppy/dashboard/dist/style.min.css';
+import { useEffect, useRef, useState } from "react";
+import "@uppy/core/dist/style.min.css";
+import "@uppy/dashboard/dist/style.min.css";
 
-import { useEditor } from '../context/EditorContext';
-import { Button } from '@/shared/components/ui/button';
-import { Input } from '@/shared/components/ui/input';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { evidenceSchema } from '../schemas';
-import { z } from 'zod';
-import { Field, FieldGroup, FieldLabel, FieldDescription } from '@/shared/components/ui/field';
+import { Button } from "@/shared/components/ui/button";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@/shared/components/ui/field";
+import { Input } from "@/shared/components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import type { z } from "zod";
+import { useEditor } from "../context/EditorContext";
+import { evidenceSchema } from "../schemas";
 
 type FormValues = z.infer<typeof evidenceSchema>;
 
-type TabId = 'url' | 'upload';
+type TabId = "url" | "upload";
 
 interface EvidenceUploaderProps {
   isOpen: boolean;
@@ -47,13 +52,21 @@ interface EvidenceUploaderProps {
 // Uppy instance — created once per component mount
 // ---------------------------------------------------------------------------
 
-function useUppyInstance(eventSlug: string | null, onSuccess: (evidenceId: string) => void) {
+function useUppyInstance(
+  eventSlug: string | null,
+  onSuccess: (evidenceId: string) => void,
+) {
   const uppyRef = useRef<Uppy | null>(null);
 
   if (!uppyRef.current) {
     const uppy = new Uppy({
       restrictions: {
-        allowedFileTypes: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
+        allowedFileTypes: [
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "application/pdf",
+        ],
         maxFileSize: 5_242_880, // 5 MB — R5.3
         maxNumberOfFiles: 1,
       },
@@ -66,10 +79,10 @@ function useUppyInstance(eventSlug: string | null, onSuccess: (evidenceId: strin
       // Task 7.2: getUploadParameters calls GET /evidence/upload-url
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       async getUploadParameters(file: any, _options: any) {
-        if (!eventSlug) throw new Error('No event slug available');
+        if (!eventSlug) throw new Error("No event slug available");
 
-        const contentType = file.type ?? 'application/octet-stream';
-        const filename = encodeURIComponent(file.name ?? 'upload');
+        const contentType = file.type ?? "application/octet-stream";
+        const filename = encodeURIComponent(file.name ?? "upload");
 
         const res = await fetch(
           `/api/v1/events/${eventSlug}/evidence/upload-url` +
@@ -77,9 +90,9 @@ function useUppyInstance(eventSlug: string | null, onSuccess: (evidenceId: strin
           {
             headers: {
               Authorization: `Bearer ${
-                typeof document !== 'undefined'
-                  ? document.cookie.match(/access_token=([^;]+)/)?.[1] ?? ''
-                  : ''
+                typeof document !== "undefined"
+                  ? document.cookie.match(/access_token=([^;]+)/)?.[1] ?? ""
+                  : ""
               }`,
             },
           },
@@ -87,7 +100,7 @@ function useUppyInstance(eventSlug: string | null, onSuccess: (evidenceId: strin
 
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          throw new Error(err?.detail ?? 'Failed to get upload URL');
+          throw new Error(err?.detail ?? "Failed to get upload URL");
         }
 
         const { evidence_id, upload_url, fields } = await res.json();
@@ -96,7 +109,7 @@ function useUppyInstance(eventSlug: string | null, onSuccess: (evidenceId: strin
         uppy.setFileMeta(file.id, { evidence_id });
 
         return {
-          method: 'POST' as const,
+          method: "POST" as const,
           url: upload_url,
           fields,
           headers: {},
@@ -116,24 +129,27 @@ function useUppyInstance(eventSlug: string | null, onSuccess: (evidenceId: strin
       if (!evidenceId || !eventSlug) return;
 
       // Task 7.2: On upload-success call confirm-upload
-      fetch(`/api/v1/events/${eventSlug}/evidence/${evidenceId}/confirm-upload`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${
-            typeof document !== 'undefined'
-              ? document.cookie.match(/access_token=([^;]+)/)?.[1] ?? ''
-              : ''
-          }`,
+      fetch(
+        `/api/v1/events/${eventSlug}/evidence/${evidenceId}/confirm-upload`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${
+              typeof document !== "undefined"
+                ? document.cookie.match(/access_token=([^;]+)/)?.[1] ?? ""
+                : ""
+            }`,
+          },
         },
-      })
+      )
         .then((res) => res.json())
         .then(() => onSuccess(evidenceId))
         .catch(console.error);
     };
 
-    uppy.on('upload-success', handler);
+    uppy.on("upload-success", handler);
     return () => {
-      uppy.off('upload-success', handler);
+      uppy.off("upload-success", handler);
     };
   }, [eventSlug, onSuccess]);
 
@@ -144,18 +160,21 @@ function useUppyInstance(eventSlug: string | null, onSuccess: (evidenceId: strin
 // Main component
 // ---------------------------------------------------------------------------
 
-export default function EvidenceUploader({ isOpen, onClose }: EvidenceUploaderProps) {
+export default function EvidenceUploader({
+  isOpen,
+  onClose,
+}: EvidenceUploaderProps) {
   const { addEvidenceToQueue, event, isEditing } = useEditor();
-  const [activeTab, setActiveTab] = useState<TabId>('url');
+  const [activeTab, setActiveTab] = useState<TabId>("url");
 
   // Track uploaded evidence IDs so we can add stubs to the board
   const handleUploadSuccess = (evidenceId: string) => {
     // Add a processing stub to the board immediately (optimistic)
     addEvidenceToQueue({
       id: evidenceId,
-      media_type: 'image',
-      source_url: 'http://placeholder',
-      upload_status: 'processing',
+      media_type: "image",
+      source_url: "http://placeholder",
+      upload_status: "processing",
       caption: null,
       thumbnail_url: null,
     });
@@ -165,25 +184,31 @@ export default function EvidenceUploader({ isOpen, onClose }: EvidenceUploaderPr
   const uppy = useUppyInstance(event?.slug ?? null, handleUploadSuccess);
 
   // --- URL tab form ---
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormValues>({
     resolver: zodResolver(evidenceSchema),
-    defaultValues: { mediaType: 'youtube', sourceUrl: '', caption: '' },
+    defaultValues: { mediaType: "youtube", sourceUrl: "", caption: "" },
   });
 
   const onUrlSubmit = (data: FormValues) => {
     let thumbnailUrl: string | null = null;
-    if (data.mediaType === 'youtube') {
+    if (data.mediaType === "youtube") {
       const videoId =
-        data.sourceUrl.split('v=')[1]?.split('&')[0] ||
-        data.sourceUrl.split('youtu.be/')[1]?.split('?')[0];
-      if (videoId) thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+        data.sourceUrl.split("v=")[1]?.split("&")[0] ||
+        data.sourceUrl.split("youtu.be/")[1]?.split("?")[0];
+      if (videoId)
+        thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
     }
 
     addEvidenceToQueue({
       media_type: data.mediaType,
       source_url: data.sourceUrl,
       thumbnail_url: thumbnailUrl,
-      caption: data.caption || '',
+      caption: data.caption || "",
     });
 
     reset();
@@ -216,7 +241,7 @@ export default function EvidenceUploader({ isOpen, onClose }: EvidenceUploaderPr
 
         {/* Tabs */}
         <div className="flex border-b border-zinc-200 dark:border-zinc-700 mt-4 px-6">
-          {(['url', 'upload'] as TabId[]).map((tab) => (
+          {(["url", "upload"] as TabId[]).map((tab) => (
             <button
               key={tab}
               id={`evidence-tab-${tab}`}
@@ -225,24 +250,24 @@ export default function EvidenceUploader({ isOpen, onClose }: EvidenceUploaderPr
               onClick={() => setActiveTab(tab)}
               className={`pb-2 px-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === tab
-                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                  ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                  : "border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
               }`}
             >
-              {tab === 'url' ? 'Add by URL' : 'Upload File'}
+              {tab === "url" ? "Add by URL" : "Upload File"}
             </button>
           ))}
         </div>
 
         <div className="p-6">
           {/* --- Tab: Add by URL --- */}
-          {activeTab === 'url' && (
+          {activeTab === "url" && (
             <form onSubmit={handleSubmit(onUrlSubmit)} className="space-y-4">
               <FieldGroup>
-                <Field data-invalid={!!errors.mediaType ? '' : undefined}>
+                <Field data-invalid={!!errors.mediaType ? "" : undefined}>
                   <FieldLabel>Media Type</FieldLabel>
                   <select
-                    {...register('mediaType')}
+                    {...register("mediaType")}
                     className="w-full rounded-md border border-zinc-300 p-2 dark:bg-zinc-800 dark:border-zinc-700"
                     aria-invalid={!!errors.mediaType}
                   >
@@ -258,10 +283,10 @@ export default function EvidenceUploader({ isOpen, onClose }: EvidenceUploaderPr
                   )}
                 </Field>
 
-                <Field data-invalid={!!errors.sourceUrl ? '' : undefined}>
+                <Field data-invalid={!!errors.sourceUrl ? "" : undefined}>
                   <FieldLabel>Source URL</FieldLabel>
                   <Input
-                    {...register('sourceUrl')}
+                    {...register("sourceUrl")}
                     placeholder="https://..."
                     aria-invalid={!!errors.sourceUrl}
                   />
@@ -272,10 +297,10 @@ export default function EvidenceUploader({ isOpen, onClose }: EvidenceUploaderPr
                   )}
                 </Field>
 
-                <Field data-invalid={!!errors.caption ? '' : undefined}>
+                <Field data-invalid={!!errors.caption ? "" : undefined}>
                   <FieldLabel>Caption (Optional)</FieldLabel>
                   <Input
-                    {...register('caption')}
+                    {...register("caption")}
                     placeholder="What does this show?"
                     aria-invalid={!!errors.caption}
                   />
@@ -306,7 +331,7 @@ export default function EvidenceUploader({ isOpen, onClose }: EvidenceUploaderPr
           )}
 
           {/* --- Tab: Upload File --- */}
-          {activeTab === 'upload' && (
+          {activeTab === "upload" && (
             <div>
               {!isEditing ? (
                 <p className="text-sm text-zinc-500 text-center py-8">
@@ -323,8 +348,8 @@ export default function EvidenceUploader({ isOpen, onClose }: EvidenceUploaderPr
                     theme="auto"
                   />
                   <p className="text-xs text-zinc-400 mt-2 text-center">
-                    Files are uploaded directly to secure cloud storage and validated before being
-                    made public.
+                    Files are uploaded directly to secure cloud storage and
+                    validated before being made public.
                   </p>
                 </div>
               )}

@@ -1,42 +1,48 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { appsFeedsRoutersGetEventTransparency } from '@/generated';
-import type { EventTransparencyResponse } from '@/generated';
+import { appsFeedsRoutersGetEventTransparency } from "@/generated";
+import type { EventTransparencyResponse } from "@/generated";
+import { useEffect, useState } from "react";
 
 interface TrendingBreakdownProps {
   eventSlug: string;
 }
 
 const STATUS_ICON: Record<string, string> = {
-  positive: '✓',
-  neutral: '–',
-  warning: '⚠',
+  positive: "✓",
+  neutral: "–",
+  warning: "⚠",
 };
 
 const STATUS_CLASS: Record<string, string> = {
-  positive: 'text-emerald-600 dark:text-emerald-400',
-  neutral: 'text-zinc-500',
-  warning: 'text-amber-600 dark:text-amber-400',
+  positive: "text-emerald-600 dark:text-emerald-400",
+  neutral: "text-zinc-500",
+  warning: "text-amber-600 dark:text-amber-400",
 };
 
 function StatPill({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex flex-col items-center rounded-lg bg-zinc-100 dark:bg-zinc-800 px-4 py-2 min-w-[60px]">
-      <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{value}</span>
+      <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+        {value}
+      </span>
       <span className="text-[11px] text-zinc-500 mt-0.5">{label}</span>
     </div>
   );
 }
 
-export default function TrendingBreakdown({ eventSlug }: TrendingBreakdownProps) {
+export default function TrendingBreakdown({
+  eventSlug,
+}: TrendingBreakdownProps) {
   const [data, setData] = useState<EventTransparencyResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     appsFeedsRoutersGetEventTransparency({ path: { slug: eventSlug } })
-      .then(r => setData(r.data ?? null))
-      .catch(() => {/* non-critical */})
+      .then((r) => setData(r.data ?? null))
+      .catch(() => {
+        /* non-critical */
+      })
       .finally(() => setIsLoading(false));
   }, [eventSlug]);
 
@@ -67,13 +73,13 @@ export default function TrendingBreakdown({ eventSlug }: TrendingBreakdownProps)
             Why it&apos;s trending
           </h3>
           <ul className="space-y-1.5">
-            {data.event_factors.map(f => (
+            {data.event_factors.map((f) => (
               <li
                 key={f.factor}
-                className={`flex items-start gap-2 text-sm ${STATUS_CLASS[f.status] ?? 'text-zinc-600'}`}
+                className={`flex items-start gap-2 text-sm ${STATUS_CLASS[f.status] ?? "text-zinc-600"}`}
               >
                 <span className="mt-0.5 font-bold shrink-0" aria-hidden="true">
-                  {STATUS_ICON[f.status] ?? '·'}
+                  {STATUS_ICON[f.status] ?? "·"}
                 </span>
                 {f.label}
               </li>
@@ -89,13 +95,13 @@ export default function TrendingBreakdown({ eventSlug }: TrendingBreakdownProps)
             Your engagement quality
           </h3>
           <ul className="space-y-1.5">
-            {data.viewer_factors.map(f => (
+            {data.viewer_factors.map((f) => (
               <li
                 key={f.factor}
-                className={`flex items-start gap-2 text-sm ${STATUS_CLASS[f.status] ?? 'text-zinc-600'}`}
+                className={`flex items-start gap-2 text-sm ${STATUS_CLASS[f.status] ?? "text-zinc-600"}`}
               >
                 <span className="mt-0.5 font-bold shrink-0" aria-hidden="true">
-                  {STATUS_ICON[f.status] ?? '·'}
+                  {STATUS_ICON[f.status] ?? "·"}
                 </span>
                 {f.label}
               </li>

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { createPortal } from 'react-dom';
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import type { LoginRequest } from '@/generated/types.gen';
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import type { LoginRequest } from "@/generated/types.gen";
+import { useState } from "react";
+import { createPortal } from "react-dom";
 
 /**
  * Shown when the refresh token has expired and the user must re-authenticate.
@@ -12,22 +12,22 @@ import type { LoginRequest } from '@/generated/types.gen';
  */
 export default function SessionExpiredModal() {
   const { sessionExpired, dismissSessionExpired, login } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!sessionExpired) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsSubmitting(true);
     try {
       await login({ email, password } as LoginRequest);
       // login() navigates on success — modal disappears because sessionExpired resets
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(err instanceof Error ? err.message : "Login failed");
     } finally {
       setIsSubmitting(false);
     }
@@ -103,7 +103,7 @@ export default function SessionExpiredModal() {
             disabled={isSubmitting}
             className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-medium py-2 text-sm transition-colors"
           >
-            {isSubmitting ? 'Signing in…' : 'Sign in'}
+            {isSubmitting ? "Signing in…" : "Sign in"}
           </button>
         </form>
 
@@ -117,7 +117,7 @@ export default function SessionExpiredModal() {
     </div>
   );
 
-  return typeof document !== 'undefined'
+  return typeof document !== "undefined"
     ? createPortal(modal, document.body)
     : null;
 }

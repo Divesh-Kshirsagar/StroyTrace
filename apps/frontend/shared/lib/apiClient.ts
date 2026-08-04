@@ -1,15 +1,15 @@
-import { client } from '../../generated/client.gen';
-import Cookies from 'js-cookie';
+import Cookies from "js-cookie";
+import { client } from "../../generated/client.gen";
 
 // ─── Base URL ────────────────────────────────────────────────────────────────
 // Server-side (SSR/RSC): must use the absolute Django URL — the Next.js proxy
 // rewrite isn't available outside the browser.
 // Browser: empty string → same-origin → /api/v1/* goes through next.config rewrites.
-const isBrowser = typeof window !== 'undefined';
+const isBrowser = typeof window !== "undefined";
 
 const baseUrl = isBrowser
-  ? ''
-  : process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+  ? ""
+  : process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 client.setConfig({ baseUrl });
 
@@ -20,52 +20,56 @@ client.setConfig({ baseUrl });
 // Set NEXT_PUBLIC_ACCESS_TOKEN_EXPIRE_MINUTES and
 // NEXT_PUBLIC_REFRESH_TOKEN_EXPIRE_DAYS in your .env to match
 // ACCESS_TOKEN_EXPIRE_MINUTES and REFRESH_TOKEN_EXPIRE_DAYS on the backend.
-const ACCESS_TOKEN_EXPIRE_MINUTES = parseInt(
-  process.env.NEXT_PUBLIC_ACCESS_TOKEN_EXPIRE_MINUTES ?? '15',
+const ACCESS_TOKEN_EXPIRE_MINUTES = Number.parseInt(
+  process.env.NEXT_PUBLIC_ACCESS_TOKEN_EXPIRE_MINUTES ?? "15",
   10,
 );
-const REFRESH_TOKEN_EXPIRE_DAYS = parseInt(
-  process.env.NEXT_PUBLIC_REFRESH_TOKEN_EXPIRE_DAYS ?? '7',
+const REFRESH_TOKEN_EXPIRE_DAYS = Number.parseInt(
+  process.env.NEXT_PUBLIC_REFRESH_TOKEN_EXPIRE_DAYS ?? "7",
   10,
 );
 
 export function getAccessToken(): string | undefined {
   if (!isBrowser) return undefined;
-  return localStorage.getItem('access_token') || Cookies.get('access_token') || undefined;
+  return (
+    localStorage.getItem("access_token") ||
+    Cookies.get("access_token") ||
+    undefined
+  );
 }
 
 export function getRefreshToken(): string | undefined {
   if (!isBrowser) return undefined;
-  return Cookies.get('refresh_token') || undefined;
+  return Cookies.get("refresh_token") || undefined;
 }
 
 export function storeTokens(accessToken: string, refreshToken: string) {
-  localStorage.setItem('access_token', accessToken);
-  Cookies.set('access_token', accessToken, {
+  localStorage.setItem("access_token", accessToken);
+  Cookies.set("access_token", accessToken, {
     expires: ACCESS_TOKEN_EXPIRE_MINUTES / (60 * 24), // convert minutes → days
-    sameSite: 'lax',
-    path: '/',
+    sameSite: "lax",
+    path: "/",
   });
-  Cookies.set('refresh_token', refreshToken, {
+  Cookies.set("refresh_token", refreshToken, {
     expires: REFRESH_TOKEN_EXPIRE_DAYS,
-    sameSite: 'lax',
-    path: '/',
+    sameSite: "lax",
+    path: "/",
   });
 }
 
 export function storeAccessToken(accessToken: string) {
-  localStorage.setItem('access_token', accessToken);
-  Cookies.set('access_token', accessToken, {
+  localStorage.setItem("access_token", accessToken);
+  Cookies.set("access_token", accessToken, {
     expires: ACCESS_TOKEN_EXPIRE_MINUTES / (60 * 24),
-    sameSite: 'lax',
-    path: '/',
+    sameSite: "lax",
+    path: "/",
   });
 }
 
 export function clearTokens() {
-  localStorage.removeItem('access_token');
-  Cookies.remove('access_token', { path: '/' });
-  Cookies.remove('refresh_token', { path: '/' });
+  localStorage.removeItem("access_token");
+  Cookies.remove("access_token", { path: "/" });
+  Cookies.remove("refresh_token", { path: "/" });
 }
 
 // ─── Refresh state ──────────────────────────────────────────────────────────
@@ -85,14 +89,14 @@ async function attemptTokenRefresh(): Promise<string | null> {
       // Call the refresh endpoint directly with raw fetch to avoid triggering
       // our own error interceptor recursively.
       const res = await globalThis.fetch(`${baseUrl}/api/v1/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh_token: refreshToken }),
       });
 
       if (!res.ok) return null;
 
-      const json = await res.json() as { access_token: string };
+      const json = (await res.json()) as { access_token: string };
       storeAccessToken(json.access_token);
       return json.access_token;
     } catch {
@@ -114,16 +118,16 @@ client.interceptors.request.use(async (req) => {
     token = getAccessToken();
   } else {
     try {
-      const { cookies } = await import('next/headers');
+      const { cookies } = await import("next/headers");
       const cookieStore = await cookies();
-      token = cookieStore.get('access_token')?.value;
+      token = cookieStore.get("access_token")?.value;
     } catch {
       // Server Component outside a request context — no token available
     }
   }
 
   if (token) {
-    req.headers.set('Authorization', `Bearer ${token}`);
+    req.headers.set("Authorization", `Bearer ${token}`);
   }
   return req;
 });
@@ -136,8 +140,12 @@ if (isBrowser) {
     if (!response || response.status !== 401) return error;
 
     // Don't retry auth endpoints themselves — that would cause infinite loops.
-    const url = request?.url ?? '';
-    if (url.includes('/auth/login') || url.includes('/auth/refresh') || url.includes('/auth/register')) {
+    const url = request?.url ?? "";
+    if (
+      url.includes("/auth/login") ||
+      url.includes("/auth/refresh") ||
+      url.includes("/auth/register")
+    ) {
       return error;
     }
 
@@ -148,7 +156,7 @@ if (isBrowser) {
       // Refresh also failed — session is fully expired. Clear state and notify
       // the UI via a custom event so AuthProvider can show the re-login modal.
       clearTokens();
-      window.dispatchEvent(new CustomEvent('session-expired'));
+      window.dispatchEvent(new CustomEvent("session-expired"));
       return error;
     }
 
@@ -157,7 +165,7 @@ if (isBrowser) {
     const retried = new Request(request!, {
       headers: new Headers(request!.headers),
     });
-    retried.headers.set('Authorization', `Bearer ${newToken}`);
+    retried.headers.set("Authorization", `Bearer ${newToken}`);
 
     try {
       const retryResponse = await globalThis.fetch(retried);

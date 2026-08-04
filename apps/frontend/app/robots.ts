@@ -1,12 +1,12 @@
-import { MetadataRoute } from 'next';
+import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
-      userAgent: '*',
-      allow: '/',
-      disallow: ['/editor/', '/dashboard/'],
+      userAgent: "*",
+      allow: "/",
+      disallow: ["/editor/", "/dashboard/"],
     },
-    sitemap: 'https://clarity.com/sitemap.xml',
+    sitemap: "https://clarity.com/sitemap.xml",
   };
 }

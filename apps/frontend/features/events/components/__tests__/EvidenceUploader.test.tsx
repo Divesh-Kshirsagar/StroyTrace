@@ -9,9 +9,8 @@
  * - URL tab submits without making any fetch call
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ---------------------------------------------------------------------------
 // Mock Uppy — capture constructor options so we can assert restrictions
@@ -19,9 +18,13 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 let capturedUppyOptions: any = null;
 let capturedAwsS3Options: any = null;
 
-vi.mock('@uppy/core', () => {
+vi.mock("@uppy/core", () => {
   const mockMethods = {
-    use: vi.fn().mockImplementation(function (this: any, _Plugin: any, opts: any) {
+    use: vi.fn().mockImplementation(function (
+      this: any,
+      _Plugin: any,
+      opts: any,
+    ) {
       if (opts?.getUploadParameters) capturedAwsS3Options = opts;
       return this;
     }),
@@ -36,7 +39,11 @@ vi.mock('@uppy/core', () => {
     capturedUppyOptions = opts;
     Object.assign(this, {
       ...mockMethods,
-      use: vi.fn().mockImplementation(function (this: any, _Plugin: any, pluginOpts: any) {
+      use: vi.fn().mockImplementation(function (
+        this: any,
+        _Plugin: any,
+        pluginOpts: any,
+      ) {
         if (pluginOpts?.getUploadParameters) capturedAwsS3Options = pluginOpts;
         return this;
       }),
@@ -47,35 +54,39 @@ vi.mock('@uppy/core', () => {
   return { default: Uppy };
 });
 
-vi.mock('@uppy/aws-s3', () => ({ default: vi.fn() }));
+vi.mock("@uppy/aws-s3", () => ({ default: vi.fn() }));
 
-vi.mock('@uppy/react', () => ({
+vi.mock("@uppy/react", () => ({
   Dashboard: () => <div data-testid="uppy-dashboard">Uppy Dashboard</div>,
 }));
 
-vi.mock('@uppy/core/dist/style.min.css', () => ({}));
-vi.mock('@uppy/dashboard/dist/style.min.css', () => ({}));
+vi.mock("@uppy/core/dist/style.min.css", () => ({}));
+vi.mock("@uppy/dashboard/dist/style.min.css", () => ({}));
 
 // ---------------------------------------------------------------------------
 // Mock EditorContext
 // ---------------------------------------------------------------------------
 const mockAddEvidenceToQueue = vi.fn();
 
-vi.mock('../../context/EditorContext', () => ({
+vi.mock("../../context/EditorContext", () => ({
   useEditor: () => ({
     event: {
-      slug: 'test-event',
-      id: 'abc123',
-      title: 'Test',
-      status: 'draft',
-      created_at: '',
-      updated_at: '',
-      lead_investigator: { handle: 'test', display_name: 'Test', avatar_url: null },
+      slug: "test-event",
+      id: "abc123",
+      title: "Test",
+      status: "draft",
+      created_at: "",
+      updated_at: "",
+      lead_investigator: {
+        handle: "test",
+        display_name: "Test",
+        avatar_url: null,
+      },
       topics: [],
     },
     addEvidenceToQueue: mockAddEvidenceToQueue,
     isEditing: true,
-    narrative: { content: '', isDirty: false, isSaving: false },
+    narrative: { content: "", isDirty: false, isSaving: false },
     evidenceQueue: [],
     evidenceIsDirty: false,
     isCreating: false,
@@ -92,14 +103,14 @@ vi.mock('../../context/EditorContext', () => ({
   }),
 }));
 
-vi.mock('@/generated', () => ({
+vi.mock("@/generated", () => ({
   appsEventsRoutersCreateEvidence: vi.fn(),
 }));
 
 // ---------------------------------------------------------------------------
 // Import after mocks
 // ---------------------------------------------------------------------------
-import EvidenceUploader from '../EvidenceUploader';
+import EvidenceUploader from "../EvidenceUploader";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -115,7 +126,7 @@ function renderUploader(isOpen = true) {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('EvidenceUploader', () => {
+describe("EvidenceUploader", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     capturedUppyOptions = null;
@@ -123,47 +134,47 @@ describe('EvidenceUploader', () => {
     global.fetch = vi.fn();
   });
 
-  it('does not render when isOpen is false', () => {
+  it("does not render when isOpen is false", () => {
     renderUploader(false);
-    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it('renders the modal with two tabs when open', () => {
+  it("renders the modal with two tabs when open", () => {
     renderUploader();
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('Add by URL')).toBeInTheDocument();
-    expect(screen.getByText('Upload File')).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText("Add by URL")).toBeInTheDocument();
+    expect(screen.getByText("Upload File")).toBeInTheDocument();
   });
 
   it('shows the URL form on "Add by URL" tab (default)', () => {
     renderUploader();
-    expect(screen.getByText('Source URL')).toBeInTheDocument();
+    expect(screen.getByText("Source URL")).toBeInTheDocument();
   });
 
-  it('switches to Upload File tab and shows Uppy dashboard', () => {
+  it("switches to Upload File tab and shows Uppy dashboard", () => {
     renderUploader();
-    fireEvent.click(screen.getByText('Upload File'));
-    expect(screen.getByTestId('uppy-dashboard')).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Upload File"));
+    expect(screen.getByTestId("uppy-dashboard")).toBeInTheDocument();
   });
 
   // ---------------------------------------------------------------------------
   // R5.2 / R5.3 — Client-side restrictions must be set via Uppy options
   // ---------------------------------------------------------------------------
-  it('configures Uppy with 5 MB maxFileSize restriction (R5.3)', () => {
+  it("configures Uppy with 5 MB maxFileSize restriction (R5.3)", () => {
     renderUploader();
     expect(capturedUppyOptions?.restrictions?.maxFileSize).toBe(5_242_880);
   });
 
-  it('configures Uppy with allowed MIME type restrictions (R5.2)', () => {
+  it("configures Uppy with allowed MIME type restrictions (R5.2)", () => {
     renderUploader();
     const allowed = capturedUppyOptions?.restrictions?.allowedFileTypes ?? [];
-    expect(allowed).toContain('image/jpeg');
-    expect(allowed).toContain('image/png');
-    expect(allowed).toContain('image/webp');
-    expect(allowed).toContain('application/pdf');
+    expect(allowed).toContain("image/jpeg");
+    expect(allowed).toContain("image/png");
+    expect(allowed).toContain("image/webp");
+    expect(allowed).toContain("application/pdf");
   });
 
-  it('getUploadParameters calls /evidence/upload-url (R5.4)', async () => {
+  it("getUploadParameters calls /evidence/upload-url (R5.4)", async () => {
     renderUploader();
 
     // capturedAwsS3Options is set by the .use(AwsS3, opts) call inside the hook
@@ -172,38 +183,42 @@ describe('EvidenceUploader', () => {
     (global.fetch as any).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        evidence_id: 'ev-123',
-        upload_url: 'https://r2.example.com/upload',
-        fields: { key: 'pending/abc/photo.jpg' },
+        evidence_id: "ev-123",
+        upload_url: "https://r2.example.com/upload",
+        fields: { key: "pending/abc/photo.jpg" },
       }),
     });
 
     const result = await capturedAwsS3Options!.getUploadParameters({
-      id: 'file-1',
-      name: 'photo.jpg',
-      type: 'image/jpeg',
+      id: "file-1",
+      name: "photo.jpg",
+      type: "image/jpeg",
     });
 
     expect(global.fetch).toHaveBeenCalledOnce();
     const calledUrl = (global.fetch as any).mock.calls[0][0] as string;
-    expect(calledUrl).toContain('/api/v1/events/test-event/evidence/upload-url');
-    expect(calledUrl).toContain('content_type=image%2Fjpeg');
+    expect(calledUrl).toContain(
+      "/api/v1/events/test-event/evidence/upload-url",
+    );
+    expect(calledUrl).toContain("content_type=image%2Fjpeg");
 
-    expect(result.method).toBe('POST');
-    expect(result.url).toBe('https://r2.example.com/upload');
+    expect(result.method).toBe("POST");
+    expect(result.url).toBe("https://r2.example.com/upload");
   });
 
   // ---------------------------------------------------------------------------
   // URL tab: no fetch on URL-based form submit
   // ---------------------------------------------------------------------------
-  it('URL tab: submitting a valid URL does NOT call fetch (R5.2)', async () => {
+  it("URL tab: submitting a valid URL does NOT call fetch (R5.2)", async () => {
     renderUploader();
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'image' } });
-    fireEvent.change(screen.getByPlaceholderText('https://...'), {
-      target: { value: 'https://example.com/photo.jpg' },
+    fireEvent.change(screen.getByRole("combobox"), {
+      target: { value: "image" },
     });
-    fireEvent.click(screen.getByText('Add to Board'));
+    fireEvent.change(screen.getByPlaceholderText("https://..."), {
+      target: { value: "https://example.com/photo.jpg" },
+    });
+    fireEvent.click(screen.getByText("Add to Board"));
 
     await waitFor(() => {
       expect(mockAddEvidenceToQueue).toHaveBeenCalledTimes(1);

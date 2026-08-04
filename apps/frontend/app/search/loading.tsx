@@ -1,4 +1,4 @@
-import SearchSkeleton from '@/features/search/components/SearchSkeleton';
+import SearchSkeleton from "@/features/search/components/SearchSkeleton";
 
 export default function Loading() {
   return <SearchSkeleton />;
