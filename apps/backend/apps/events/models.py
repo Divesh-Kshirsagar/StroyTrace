@@ -1,7 +1,10 @@
 import uuid
-from django.db import models
+
 from django.conf import settings
+from django.db import models
+
 from apps.topics.models import Topic
+
 
 class Event(models.Model):
     STATUS_CHOICES = [
@@ -25,13 +28,19 @@ class Event(models.Model):
         db_index=True
     )
     topics = models.ManyToManyField(Topic, related_name='events', blank=True)
-    
+
+    # Ranking fields — updated asynchronously by the scoring worker
+    trending_score = models.FloatField(default=0.0, db_index=True)
+    last_interaction_at = models.DateTimeField(null=True, blank=True, db_index=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         indexes = [
             models.Index(fields=['status', 'created_at']),
+            models.Index(fields=['-trending_score']),
+            models.Index(fields=['-last_interaction_at']),
         ]
 
     def __str__(self):
@@ -61,6 +70,14 @@ class Evidence(models.Model):
         ('document', 'Document'),
     ]
 
+    UPLOAD_STATUS_CHOICES = [
+        ('url_based', 'URL Based'),
+        ('pending_upload', 'Pending Upload'),
+        ('processing', 'Processing'),
+        ('processed', 'Processed'),
+        ('failed', 'Failed'),
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     event = models.ForeignKey(
         Event,
@@ -72,7 +89,14 @@ class Evidence(models.Model):
     thumbnail_url = models.URLField(max_length=1000, blank=True, null=True)
     caption = models.CharField(max_length=500, blank=True, null=True)
     display_order = models.IntegerField(default=0)
-    
+    upload_status = models.CharField(
+        max_length=20,
+        choices=UPLOAD_STATUS_CHOICES,
+        default='url_based',
+        db_index=True,
+    )
+    r2_quarantine_key = models.CharField(max_length=1000, blank=True, null=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

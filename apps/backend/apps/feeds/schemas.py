@@ -1,13 +1,13 @@
-from typing import List, Optional, Any
-from pydantic import Field
-from ninja import Schema
 from datetime import date, datetime
 from uuid import UUID
+
+from ninja import Schema
+
 
 class CreatorSummarySchema(Schema):
     handle: str
     display_name: str
-    avatar_url: Optional[str] = None
+    avatar_url: str | None = None
 
 class TopicSummarySchema(Schema):
     slug: str
@@ -17,14 +17,16 @@ class EventSummarySchema(Schema):
     id: UUID
     slug: str
     title: str
-    summary: Optional[str] = None
+    summary: str | None = None
     start_date: date
     status: str
     lead_investigator: CreatorSummarySchema
-    primary_topic: Optional[TopicSummarySchema] = None
+    primary_topic: TopicSummarySchema | None = None
     evidence_count: int
-    primary_thumbnail: Optional[str] = None
+    primary_thumbnail: str | None = None
     created_at: datetime
+    upvote_count: int
+    viewer_has_upvoted: bool
     
     @staticmethod
     def resolve_lead_investigator(obj):
@@ -59,8 +61,57 @@ class EventSummarySchema(Schema):
                     return ev.thumbnail_url
         return None
 
+    @staticmethod
+    def resolve_upvote_count(obj):
+        return obj.interactions.filter(interaction_type="upvote").count()
+
+    @staticmethod
+    def resolve_viewer_has_upvoted(obj):
+        # _viewer_user is injected by the feed endpoint resolver below
+        viewer = getattr(obj, '_viewer_user', None)
+        if viewer is None or not viewer.is_authenticated:
+            return False
+        return obj.interactions.filter(
+            user=viewer, interaction_type="upvote"
+        ).exists()
+
 class PaginatedEventSummarySchema(Schema):
-    items: List[EventSummarySchema]
-    next_cursor: Optional[str] = None
-    previous_cursor: Optional[str] = None
+    items: list[EventSummarySchema]
+    next_cursor: str | None = None
+    previous_cursor: str | None = None
     has_next: bool
+
+
+# ---------------------------------------------------------------------------
+# Interaction schemas
+# ---------------------------------------------------------------------------
+
+class InteractRequest(Schema):
+    type: str  # "upvote" | "comment" | "share"
+
+
+class InteractResponse(Schema):
+    success: bool
+    new_score: float
+
+
+# ---------------------------------------------------------------------------
+# Transparency schemas
+# ---------------------------------------------------------------------------
+
+class TransparencyFactor(Schema):
+    factor: str
+    label: str
+    status: str  # "positive" | "neutral" | "warning"
+
+
+class EventTransparencyResponse(Schema):
+    event_slug: str
+    trending_score: float
+    total_interactions: int
+    upvote_count: int
+    comment_count: int
+    share_count: int
+    viewer_has_upvoted: bool
+    viewer_factors: list[TransparencyFactor]
+    event_factors: list[TransparencyFactor]

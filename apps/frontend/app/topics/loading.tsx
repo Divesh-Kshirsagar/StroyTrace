@@ -1,4 +1,4 @@
-import EventCardSkeleton from '@/features/feeds/components/EventCardSkeleton';
+import EventCardSkeleton from "@/features/feeds/components/EventCardSkeleton";
 
 export default function Loading() {
   return (

@@ -1,5 +1,7 @@
 import pytest
-from apps.events.factories import EventFactory, NarrativeFactory, EvidenceFactory
+
+from apps.events.factories import EventFactory, EvidenceFactory, NarrativeFactory
+
 
 @pytest.mark.django_db
 def test_event_creation():

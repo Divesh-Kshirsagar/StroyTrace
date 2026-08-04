@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import React from "react";
 import { Geist, Geist_Mono } from "next/font/google";
+import React from "react";
 import "./globals.css";
 
+import SessionExpiredModal from "@/features/auth/components/SessionExpiredModal";
 import { AuthProvider } from "@/features/auth/hooks/useAuth";
-import Analytics from '@/shared/components/Analytics';
-import Navbar from '@/shared/components/Navbar';
-import '@/shared/lib/apiClient';
+import Analytics from "@/shared/components/Analytics";
+import Navbar from "@/shared/components/Navbar";
+import "@/shared/lib/apiClient";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,6 +41,7 @@ export default function RootLayout({
         <AuthProvider>
           <Navbar />
           {children}
+          <SessionExpiredModal />
         </AuthProvider>
       </body>
     </html>

@@ -1,6 +1,7 @@
 import pytest
-from apps.users.factories import UserFactory, CreatorProfileFactory
 from django.contrib.auth import get_user_model
+
+from apps.users.factories import CreatorProfileFactory
 
 User = get_user_model()
 

@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AppsEventsCreatorRoutersGetDraftsCountData, AppsEventsCreatorRoutersGetDraftsCountResponses, AppsEventsCreatorRoutersListCreatorEventsData, AppsEventsCreatorRoutersListCreatorEventsResponses, AppsEventsRoutersCreateEventData, AppsEventsRoutersCreateEventResponses, AppsEventsRoutersCreateEvidenceData, AppsEventsRoutersCreateEvidenceResponses, AppsEventsRoutersDeleteEventData, AppsEventsRoutersDeleteEventResponses, AppsEventsRoutersDeleteEvidenceData, AppsEventsRoutersDeleteEvidenceResponses, AppsEventsRoutersGetEventData, AppsEventsRoutersGetEventResponses, AppsEventsRoutersGetNarrativeData, AppsEventsRoutersGetNarrativeResponses, AppsEventsRoutersListEvidenceData, AppsEventsRoutersListEvidenceResponses, AppsEventsRoutersReorderEvidenceData, AppsEventsRoutersReorderEvidenceResponses, AppsEventsRoutersSearchEventsData, AppsEventsRoutersSearchEventsResponses, AppsEventsRoutersUpdateEventData, AppsEventsRoutersUpdateEventResponses, AppsEventsRoutersUpdateEventStatusData, AppsEventsRoutersUpdateEventStatusResponses, AppsEventsRoutersUpdateEvidenceData, AppsEventsRoutersUpdateEvidenceResponses, AppsEventsRoutersUpdateNarrativeData, AppsEventsRoutersUpdateNarrativeResponses, AppsFeedsRoutersChannelFeedData, AppsFeedsRoutersChannelFeedResponses, AppsFeedsRoutersHomeFeedData, AppsFeedsRoutersHomeFeedResponses, AppsFeedsRoutersTopicFeedData, AppsFeedsRoutersTopicFeedResponses, AppsTopicsRoutersListTopicsData, AppsTopicsRoutersListTopicsResponses, AppsUsersRoutersGetChannelData, AppsUsersRoutersGetChannelResponses, AppsUsersRoutersGetMyTopicsData, AppsUsersRoutersGetMyTopicsResponses, AppsUsersRoutersLoginData, AppsUsersRoutersLoginResponses, AppsUsersRoutersLogoutData, AppsUsersRoutersLogoutResponses, AppsUsersRoutersMeData, AppsUsersRoutersMeResponses, AppsUsersRoutersMyChannelData, AppsUsersRoutersMyChannelResponses, AppsUsersRoutersRefreshData, AppsUsersRoutersRefreshResponses, AppsUsersRoutersRegisterData, AppsUsersRoutersRegisterResponses, AppsUsersRoutersSetMyTopicsData, AppsUsersRoutersSetMyTopicsResponses } from './types.gen';
+import type { AppsEventsCreatorRoutersGetDraftsCountData, AppsEventsCreatorRoutersGetDraftsCountResponses, AppsEventsCreatorRoutersListCreatorEventsData, AppsEventsCreatorRoutersListCreatorEventsResponses, AppsEventsRoutersCreateEventData, AppsEventsRoutersCreateEventResponses, AppsEventsRoutersCreateEvidenceData, AppsEventsRoutersCreateEvidenceResponses, AppsEventsRoutersDeleteEventData, AppsEventsRoutersDeleteEventResponses, AppsEventsRoutersDeleteEvidenceData, AppsEventsRoutersDeleteEvidenceResponses, AppsEventsRoutersGetEventData, AppsEventsRoutersGetEventResponses, AppsEventsRoutersGetNarrativeData, AppsEventsRoutersGetNarrativeResponses, AppsEventsRoutersListEvidenceData, AppsEventsRoutersListEvidenceResponses, AppsEventsRoutersReorderEvidenceData, AppsEventsRoutersReorderEvidenceResponses, AppsEventsRoutersSearchEventsData, AppsEventsRoutersSearchEventsResponses, AppsEventsRoutersUpdateEventData, AppsEventsRoutersUpdateEventResponses, AppsEventsRoutersUpdateEventStatusData, AppsEventsRoutersUpdateEventStatusResponses, AppsEventsRoutersUpdateEvidenceData, AppsEventsRoutersUpdateEvidenceResponses, AppsEventsRoutersUpdateNarrativeData, AppsEventsRoutersUpdateNarrativeResponses, AppsFeedsRoutersChannelFeedData, AppsFeedsRoutersChannelFeedResponses, AppsFeedsRoutersCreateInteractionData, AppsFeedsRoutersCreateInteractionResponses, AppsFeedsRoutersGetEventTransparencyData, AppsFeedsRoutersGetEventTransparencyResponses, AppsFeedsRoutersHomeFeedData, AppsFeedsRoutersHomeFeedResponses, AppsFeedsRoutersRemoveInteractionData, AppsFeedsRoutersRemoveInteractionResponses, AppsFeedsRoutersTopicFeedData, AppsFeedsRoutersTopicFeedResponses, AppsTopicsRoutersListTopicsData, AppsTopicsRoutersListTopicsResponses, AppsUsersRoutersGetChannelData, AppsUsersRoutersGetChannelResponses, AppsUsersRoutersGetMyTopicsData, AppsUsersRoutersGetMyTopicsResponses, AppsUsersRoutersLoginData, AppsUsersRoutersLoginResponses, AppsUsersRoutersLogoutData, AppsUsersRoutersLogoutResponses, AppsUsersRoutersMeData, AppsUsersRoutersMeResponses, AppsUsersRoutersMyChannelData, AppsUsersRoutersMyChannelResponses, AppsUsersRoutersRefreshData, AppsUsersRoutersRefreshResponses, AppsUsersRoutersRegisterData, AppsUsersRoutersRegisterResponses, AppsUsersRoutersSetMyTopicsData, AppsUsersRoutersSetMyTopicsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -338,6 +338,8 @@ export const appsEventsCreatorRoutersGetDraftsCount = <ThrowOnError extends bool
 
 /**
  * Home Feed
+ *
+ * Returns the home feed.  Use ``?sort=trending`` (default) or ``?sort=latest``.
  */
 export const appsFeedsRoutersHomeFeed = <ThrowOnError extends boolean = false>(options?: Options<AppsFeedsRoutersHomeFeedData, ThrowOnError>): RequestResult<AppsFeedsRoutersHomeFeedResponses, unknown, ThrowOnError> => (options?.client ?? client).get<AppsFeedsRoutersHomeFeedResponses, unknown, ThrowOnError>({ url: '/api/v1/feed/home', ...options });
 
@@ -350,3 +352,50 @@ export const appsFeedsRoutersTopicFeed = <ThrowOnError extends boolean = false>(
  * Channel Feed
  */
 export const appsFeedsRoutersChannelFeed = <ThrowOnError extends boolean = false>(options: Options<AppsFeedsRoutersChannelFeedData, ThrowOnError>): RequestResult<AppsFeedsRoutersChannelFeedResponses, unknown, ThrowOnError> => (options.client ?? client).get<AppsFeedsRoutersChannelFeedResponses, unknown, ThrowOnError>({ url: '/api/v1/feed/channel/{handle}', ...options });
+
+/**
+ * Get Event Transparency
+ *
+ * Returns qualitative factors explaining why an event is trending.
+ * Does NOT expose raw scores or mathematical formula weights.
+ * Works for both anonymous and authenticated users.
+ */
+export const appsFeedsRoutersGetEventTransparency = <ThrowOnError extends boolean = false>(options: Options<AppsFeedsRoutersGetEventTransparencyData, ThrowOnError>): RequestResult<AppsFeedsRoutersGetEventTransparencyResponses, unknown, ThrowOnError> => (options.client ?? client).get<AppsFeedsRoutersGetEventTransparencyResponses, unknown, ThrowOnError>({ url: '/api/v1/feed/events/{slug}/transparency', ...options });
+
+/**
+ * Remove Interaction
+ *
+ * Remove an interaction from an event.
+ */
+export const appsFeedsRoutersRemoveInteraction = <ThrowOnError extends boolean = false>(options: Options<AppsFeedsRoutersRemoveInteractionData, ThrowOnError>): RequestResult<AppsFeedsRoutersRemoveInteractionResponses, unknown, ThrowOnError> => (options.client ?? client).delete<AppsFeedsRoutersRemoveInteractionResponses, unknown, ThrowOnError>({
+    security: [{
+            key: 'AuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/api/v1/feed/events/{slug}/interact',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Create Interaction
+ *
+ * Create an interaction (upvote / comment / share) on an event.
+ */
+export const appsFeedsRoutersCreateInteraction = <ThrowOnError extends boolean = false>(options: Options<AppsFeedsRoutersCreateInteractionData, ThrowOnError>): RequestResult<AppsFeedsRoutersCreateInteractionResponses, unknown, ThrowOnError> => (options.client ?? client).post<AppsFeedsRoutersCreateInteractionResponses, unknown, ThrowOnError>({
+    security: [{
+            key: 'AuthBearer',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/api/v1/feed/events/{slug}/interact',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});

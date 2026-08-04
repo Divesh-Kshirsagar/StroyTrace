@@ -1,11 +1,11 @@
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { appsEventsRoutersGetEvent } from '@/generated';
-import EventEditorPage from '@/features/events/components/EventEditorPage';
-import '@/shared/lib/apiClient';
+import EventEditorPage from "@/features/events/components/EventEditorPage";
+import { appsEventsRoutersGetEvent } from "@/generated";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import "@/shared/lib/apiClient";
 
 export const metadata: Metadata = {
-  title: 'Edit Event - Clarity',
+  title: "Edit Event - Clarity",
 };
 
 interface PageProps {
@@ -18,7 +18,7 @@ export default async function EditEventPage({ params }: PageProps) {
   try {
     const { slug } = await params;
     const { data } = await appsEventsRoutersGetEvent({ path: { slug } } as any);
-    if (!data) throw new Error('Not found');
+    if (!data) throw new Error("Not found");
     return <EventEditorPage initialEvent={data} />;
   } catch (error) {
     notFound();

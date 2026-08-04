@@ -1,17 +1,19 @@
-from pydantic import EmailStr, Field
-from ninja import Schema
-from typing import Optional
 import uuid
 from datetime import datetime
+
+from ninja import Schema
+from pydantic import EmailStr, Field
+
 from apps.topics.schemas import TopicSchema
+
 
 class CreatorProfileSchema(Schema):
     id: uuid.UUID
     handle: str
     display_name: str
-    bio: Optional[str] = None
-    avatar_url: Optional[str] = None
-    banner_url: Optional[str] = None
+    bio: str | None = None
+    avatar_url: str | None = None
+    banner_url: str | None = None
     social_links: dict
     is_verified: bool
     topics: list[TopicSchema] = []

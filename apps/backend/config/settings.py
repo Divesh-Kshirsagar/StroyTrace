@@ -3,9 +3,8 @@ Django settings for core project.
 Reads secrets from environment variables (or .env via python-decouple).
 """
 
-from pathlib import Path
-from datetime import timedelta
 import os
+from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -159,6 +158,25 @@ SILENCED_SYSTEM_CHECKS = ['django_ratelimit.E003', 'django_ratelimit.W001']
 # Auth user model
 # ---------------------------------------------------------------------------
 AUTH_USER_MODEL = 'users.User'
+
+# ---------------------------------------------------------------------------
+# Ranking System Configuration
+# Weights sum to 1.0 for the Engagement Confidence Score.
+# All values loaded from env vars so production can be tuned without deploys.
+# ---------------------------------------------------------------------------
+RANKING_WEIGHT_ACCOUNT_AGE = config("RANKING_WEIGHT_ACCOUNT_AGE", default=0.3, cast=float)
+RANKING_WEIGHT_VERIFIED = config("RANKING_WEIGHT_VERIFIED", default=0.2, cast=float)
+RANKING_WEIGHT_NO_FLAGS = config("RANKING_WEIGHT_NO_FLAGS", default=0.3, cast=float)
+RANKING_WEIGHT_PROFILE_COMPLETE = config("RANKING_WEIGHT_PROFILE_COMPLETE", default=0.2, cast=float)
+
+# Time decay (Hacker News-style): score = 1 / (age_hours + base) ^ gravity
+RANKING_TIME_DECAY_GRAVITY = config("RANKING_TIME_DECAY_GRAVITY", default=1.8, cast=float)
+RANKING_TIME_DECAY_BASE_HOURS = config("RANKING_TIME_DECAY_BASE_HOURS", default=2.0, cast=float)
+
+# Interaction weights
+RANKING_WEIGHT_UPVOTE = config("RANKING_WEIGHT_UPVOTE", default=1.0, cast=float)
+RANKING_WEIGHT_COMMENT = config("RANKING_WEIGHT_COMMENT", default=1.5, cast=float)
+RANKING_WEIGHT_SHARE = config("RANKING_WEIGHT_SHARE", default=2.0, cast=float)
 
 # ---------------------------------------------------------------------------
 # Django Ninja / default schema

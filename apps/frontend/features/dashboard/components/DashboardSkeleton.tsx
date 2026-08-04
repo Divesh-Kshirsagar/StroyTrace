@@ -1,4 +1,4 @@
-import { Skeleton } from '@/shared/components/ui/skeleton';
+import { Skeleton } from "@/shared/components/ui/skeleton";
 
 export default function DashboardSkeleton() {
   return (
@@ -10,7 +10,7 @@ export default function DashboardSkeleton() {
         </div>
         <Skeleton className="h-10 w-32 rounded-md" />
       </div>
-      
+
       <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden bg-white dark:bg-zinc-950">
         <div className="flex items-center gap-4 border-b border-zinc-200 dark:border-zinc-800 p-2 px-4">
           <Skeleton className="h-8 w-20 rounded-full" />

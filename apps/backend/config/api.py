@@ -1,12 +1,11 @@
 from ninja import NinjaAPI
-from ninja.security import HttpBearer
-from apps.users.routers import auth_router, channels_router
-from apps.topics.routers import topics_router
-from apps.events.routers import events_router
-from apps.events.creator_routers import creator_events_router
-from apps.feeds.routers import feeds_router
 
-from core.auth import AuthBearer, OptionalAuthBearer
+from apps.events.creator_routers import creator_events_router
+from apps.events.routers import events_router
+from apps.feeds.routers import feeds_router, interact_router
+from apps.topics.routers import topics_router
+from apps.users.routers import auth_router, channels_router
+from core.auth import AuthBearer
 
 api = NinjaAPI(
     title="Clarity API",
@@ -15,6 +14,8 @@ api = NinjaAPI(
 )
 
 from django_ratelimit.exceptions import Ratelimited
+
+
 @api.exception_handler(Ratelimited)
 def ratelimited_handler(request, exc):
     response = api.create_response(request, {"detail": "Too many requests. Please try again later."}, status=429)
@@ -31,3 +32,4 @@ api.add_router("/topics", topics_router)
 api.add_router("/events", events_router)
 api.add_router("/creator/events", creator_events_router, auth=AuthBearer())
 api.add_router("/feed", feeds_router)
+api.add_router("/feed", interact_router)

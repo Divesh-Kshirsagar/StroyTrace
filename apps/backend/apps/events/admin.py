@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import Event, Narrative, Evidence
+
+from .models import Event, Evidence, Narrative
+
 
 class EvidenceInline(admin.TabularInline):
     model = Evidence

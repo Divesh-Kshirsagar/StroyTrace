@@ -1,6 +1,6 @@
-'use client';
-import Link from 'next/link';
-import { Badge } from '@/shared/components/ui/badge';
+"use client";
+import { Badge } from "@/shared/components/ui/badge";
+import Link from "next/link";
 
 interface TopicBadgeProps {
   topic: { slug: string; name: string };
@@ -9,8 +9,11 @@ interface TopicBadgeProps {
 
 export default function TopicBadge({ topic, className }: TopicBadgeProps) {
   return (
-    <Link href={`/topic/${topic.slug}`} onClick={e => e.stopPropagation()}>
-      <Badge variant="secondary" className={`hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors ${className || ''}`}>
+    <Link href={`/topic/${topic.slug}`} onClick={(e) => e.stopPropagation()}>
+      <Badge
+        variant="secondary"
+        className={`hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors ${className || ""}`}
+      >
         {topic.name}
       </Badge>
     </Link>

@@ -1,28 +1,32 @@
-from typing import List
-from django.shortcuts import get_object_or_404
-from django.utils.text import slugify
-from django.db import transaction
-from django.db.models import Q
-from ninja import Router
-from ninja.errors import HttpError
 import uuid
 
-from .models import Event, Narrative, Evidence
+from django.conf import settings
+from django.db import transaction
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
+from django.utils.text import slugify
+from ninja import Router
+from ninja.errors import HttpError
+
 from apps.topics.models import Topic
 from core.auth import AuthBearer, OptionalAuthBearer
+from core.storage import _get_r2_client
+
+from .models import Event, Evidence, Narrative
 from .schemas import (
-    EventSchema,
     EventCreateSchema,
-    EventUpdateSchema,
     EventFullSchema,
-    NarrativeSchema,
-    NarrativeCreateUpdateSchema,
-    EvidenceSchema,
+    EventSchema,
+    EventStatusUpdateSchema,
+    EventUpdateSchema,
     EvidenceCreateSchema,
+    EvidenceReorderSchema,
+    EvidenceSchema,
     EvidenceUpdateSchema,
     MessageSchema,
-    EventStatusUpdateSchema,
-    EvidenceReorderSchema
+    NarrativeCreateUpdateSchema,
+    NarrativeSchema,
+    UploadUrlSchema,
 )
 
 events_router = Router(tags=["events"])
@@ -60,12 +64,13 @@ def create_event(request, data: EventCreateSchema):
             
         return event
 
-from typing import Optional
+
 from apps.feeds.schemas import PaginatedEventSummarySchema
 from core.pagination import paginate_queryset
 
+
 @events_router.get("/search", response=PaginatedEventSummarySchema, auth=None)
-def search_events(request, q: str = "", topic: str = "", status: str = "published", cursor: Optional[str] = None, limit: int = 20):
+def search_events(request, q: str = "", topic: str = "", status: str = "published", cursor: str | None = None, limit: int = 20):
     events = Event.objects.filter(status=status).select_related(
         'lead_investigator', 'lead_investigator__creator_profile'
     ).prefetch_related('topics', 'evidence_set')
@@ -84,10 +89,8 @@ def search_events(request, q: str = "", topic: str = "", status: str = "publishe
 def get_event(request, slug: str):
     event = get_event_or_404(slug)
     narrative = getattr(event, 'narrative', None)
-    if narrative and not narrative.is_published:
-        # request.auth is None for anonymous; only show unpublished narrative to owner
-        if request.auth is None or event.lead_investigator != request.auth:
-            narrative = None
+    if narrative and not narrative.is_published and (request.auth is None or event.lead_investigator != request.auth):
+        narrative = None
             
     return {
         "event": event,
@@ -117,7 +120,7 @@ def update_narrative(request, slug: str, data: NarrativeCreateUpdateSchema):
     event = get_event_or_404(slug)
     require_lead_investigator(request, event)
     
-    narrative, created = Narrative.objects.update_or_create(
+    narrative, _created = Narrative.objects.update_or_create(
         event=event,
         defaults={
             'content': data.content,
@@ -130,10 +133,76 @@ def update_narrative(request, slug: str, data: NarrativeCreateUpdateSchema):
 def get_narrative(request, slug: str):
     event = get_event_or_404(slug)
     narrative = get_object_or_404(Narrative, event=event)
-    if not narrative.is_published:
-        if not hasattr(request, 'user') or event.lead_investigator != request.user:
-            raise HttpError(403, "Narrative is not published")
+    if not narrative.is_published and (not hasattr(request, 'user') or event.lead_investigator != request.user):
+        raise HttpError(403, "Narrative is not published")
     return narrative
+
+@events_router.get("/{slug}/evidence/upload-url", response=UploadUrlSchema, auth=_auth)
+def get_evidence_upload_url(request, slug: str, filename: str, content_type: str):
+    event = get_event_or_404(slug)
+    require_lead_investigator(request, event)
+
+    ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
+
+    if content_type not in ALLOWED_CONTENT_TYPES:
+        raise HttpError(400, "Unsupported file type")
+
+    evidence_id = uuid.uuid4()
+    key = f"pending/{event.id}/{evidence_id}/{filename}"
+
+    conditions = [
+        ["content-length-range", 1024, 5_242_880],  # 1 KB to 5 MB
+        ["eq", "$Content-Type", content_type],
+    ]
+
+    s3_client = _get_r2_client()
+    post_dict = s3_client.generate_presigned_post(
+        Bucket=settings.R2_QUARANTINE_BUCKET,
+        Key=key,
+        Conditions=conditions,
+        ExpiresIn=3600,
+    )
+
+    media_type = "image" if content_type.startswith("image/") else "document"
+    evidence = Evidence.objects.create(
+        id=evidence_id,
+        event=event,
+        media_type=media_type,
+        source_url="http://placeholder",
+        upload_status="pending_upload",
+        r2_quarantine_key=key,
+        caption="",
+    )
+
+    return {"evidence_id": str(evidence.id), "upload_url": post_dict["url"], "fields": post_dict["fields"]}
+
+
+@events_router.post("/{slug}/evidence/{evidence_id}/confirm-upload", response=EvidenceSchema, auth=_auth)
+def confirm_evidence_upload(request, slug: str, evidence_id: uuid.UUID):
+    """
+    Transition evidence from pending_upload → processing and enqueue the
+    background validation task.  Returns 404 if called a second time (status
+    is no longer pending_upload).
+    """
+    event = get_event_or_404(slug)
+    require_lead_investigator(request, event)
+
+    evidence = get_object_or_404(
+        Evidence,
+        id=evidence_id,
+        event=event,
+        upload_status="pending_upload",
+    )
+
+    evidence.upload_status = "processing"
+    evidence.save(update_fields=["upload_status"])
+
+    # Lazy import to avoid circular dependency between routers ↔ tasks
+    from apps.events.tasks import validate_and_process_evidence
+    validate_and_process_evidence.delay(str(evidence.id))
+
+    return evidence
+
 
 @events_router.post("/{slug}/evidence", response=EvidenceSchema, auth=_auth)
 def create_evidence(request, slug: str, data: EvidenceCreateSchema):
@@ -146,7 +215,7 @@ def create_evidence(request, slug: str, data: EvidenceCreateSchema):
     )
     return evidence
 
-@events_router.get("/{slug}/evidence", response=List[EvidenceSchema], auth=None)
+@events_router.get("/{slug}/evidence", response=list[EvidenceSchema], auth=None)
 def list_evidence(request, slug: str):
     event = get_event_or_404(slug)
     return list(event.evidence_set.all())

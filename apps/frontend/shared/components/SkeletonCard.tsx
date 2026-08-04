@@ -1,4 +1,4 @@
-import { Card } from '@/shared/components/ui/card';
+import { Card } from "@/shared/components/ui/card";
 
 export default function SkeletonCard() {
   return (

@@ -1,21 +1,44 @@
-'use client';
-import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
-import { client } from '@/generated/client.gen';
-import { 
-  appsUsersRoutersLogin, 
-  appsUsersRoutersRegister, 
-  appsUsersRoutersLogout, 
-  appsUsersRoutersMe 
-} from '@/generated';
-import type { LoginRequest, RegisterRequest, UserSchema, CreatorProfileSchema } from '@/generated/types.gen';
+"use client";
+import {
+  appsUsersRoutersLogin,
+  appsUsersRoutersLogout,
+  appsUsersRoutersMe,
+  appsUsersRoutersRefresh,
+  appsUsersRoutersRegister,
+} from "@/generated";
+import { client } from "@/generated/client.gen";
+import type {
+  CreatorProfileSchema,
+  LoginRequest,
+  RegisterRequest,
+  UserSchema,
+} from "@/generated/types.gen";
+import {
+  clearTokens,
+  getAccessToken,
+  getRefreshToken,
+  storeAccessToken,
+  storeTokens,
+} from "@/shared/lib/apiClient";
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
+import {
+  type ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 interface AuthContextType {
   user: UserSchema | null;
   creatorProfile: CreatorProfileSchema | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  /** True when the session has fully expired (refresh token gone) — show re-login modal */
+  sessionExpired: boolean;
+  dismissSessionExpired: () => void;
   login: (data: LoginRequest) => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
@@ -23,33 +46,14 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-function getStoredToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('access_token') || Cookies.get('access_token') || null;
-}
-
-function storeTokens(accessToken: string, refreshToken: string) {
-  localStorage.setItem('access_token', accessToken);
-  // path: '/' is CRITICAL — without it js-cookie scopes to the current path,
-  // so the cookie won't be sent from /dashboard, /editor etc.
-  Cookies.set('access_token', accessToken, { expires: 7, sameSite: 'lax', path: '/' });
-  Cookies.set('refresh_token', refreshToken, { expires: 7, sameSite: 'lax', path: '/' });
-}
-
-function clearTokens() {
-  localStorage.removeItem('access_token');
-  Cookies.remove('access_token', { path: '/' });
-  Cookies.remove('refresh_token', { path: '/' });
-}
-
 // ─── Provider ────────────────────────────────────────────────────────────────
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserSchema | null>(null);
-  const [creatorProfile, setCreatorProfile] = useState<CreatorProfileSchema | null>(null);
+  const [creatorProfile, setCreatorProfile] =
+    useState<CreatorProfileSchema | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const router = useRouter();
   const interceptorSetUp = useRef(false);
 
@@ -58,111 +62,162 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (interceptorSetUp.current) return;
     interceptorSetUp.current = true;
 
-    // Use same-origin (empty baseUrl) so requests go through Next.js rewrite proxy
-    client.setConfig({ baseUrl: '' });
+    client.setConfig({ baseUrl: "" });
     client.interceptors.request.clear();
     client.interceptors.request.use((req) => {
-      const token = getStoredToken();
+      const token = getAccessToken();
       if (token) {
-        req.headers.set('Authorization', `Bearer ${token}`);
+        req.headers.set("Authorization", `Bearer ${token}`);
       }
       return req;
     });
   }, []);
 
-  // ── Load user from /auth/me ────────────────────────────────────────────
-  const loadUser = async (): Promise<boolean> => {
-    const token = getStoredToken();
-    if (!token) {
+  // ── Listen for session-expired events from the error interceptor ───────
+  useEffect(() => {
+    const handleExpired = () => {
       setUser(null);
       setCreatorProfile(null);
-      setIsLoading(false);
-      return false;
+      setSessionExpired(true);
+    };
+    window.addEventListener("session-expired", handleExpired);
+    return () => window.removeEventListener("session-expired", handleExpired);
+  }, []);
+
+  // ── Load user on mount ─────────────────────────────────────────────────
+  // Strategy:
+  //   1. Try /auth/me with the stored access token.
+  //   2. If that 401s, try to refresh the access token silently.
+  //   3. If refresh succeeds, retry /auth/me with the new token.
+  //   4. If refresh also fails, the session is gone — user stays logged out.
+  //      (No modal on cold load — the user just sees the logged-out state.)
+  const loadUser = async () => {
+    const token = getAccessToken();
+    if (!token) {
+      // No token at all — check if we have a refresh token and can bootstrap
+      const refreshToken = getRefreshToken();
+      if (refreshToken) {
+        await tryRefreshAndLoadUser();
+      } else {
+        setIsLoading(false);
+      }
+      return;
     }
 
     try {
       const { data } = await appsUsersRoutersMe();
-      if (!data) throw new Error('empty response');
+      if (!data) throw new Error("empty response");
       setUser(data);
       setCreatorProfile(data.creator_profile ?? null);
-      return true;
     } catch {
-      // Token may be expired or invalid
-      clearTokens();
-      setUser(null);
-      setCreatorProfile(null);
-      return false;
+      // Access token likely expired — try refreshing silently
+      const refreshed = await tryRefreshAndLoadUser();
+      if (!refreshed) {
+        clearTokens();
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Run on mount
+  const tryRefreshAndLoadUser = async (): Promise<boolean> => {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) return false;
+
+    try {
+      const { data: refreshData } = await appsUsersRoutersRefresh({
+        body: { refresh_token: refreshToken },
+      });
+      if (!refreshData?.access_token) return false;
+
+      storeAccessToken(refreshData.access_token);
+
+      // Now load the user with the fresh token
+      const { data } = await appsUsersRoutersMe();
+      if (!data) return false;
+      setUser(data);
+      setCreatorProfile(data.creator_profile ?? null);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   useEffect(() => {
     loadUser();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── login ──────────────────────────────────────────────────────────────
   const login = async (data: LoginRequest) => {
-    const { data: resData, error } = await appsUsersRoutersLogin({ body: data } as any);
+    const { data: resData, error } = await appsUsersRoutersLogin({
+      body: data,
+    } as any);
     if (!resData || error) {
-      const msg = (error as any)?.detail ?? 'Login failed';
+      const msg = (error as any)?.detail ?? "Login failed";
       throw new Error(msg);
     }
 
     storeTokens(resData.access_token, resData.refresh_token);
-
-    // Immediately update state from the response — no extra /me round-trip
     setUser(resData.user);
     setCreatorProfile(resData.user.creator_profile ?? null);
+    setSessionExpired(false);
     setIsLoading(false);
 
-    router.push(`/@${resData.user.creator_profile?.handle ?? ''}`);
+    router.push(`/@${resData.user.creator_profile?.handle ?? ""}`);
   };
 
   // ── register ──────────────────────────────────────────────────────────
   const register = async (data: RegisterRequest) => {
-    const { data: resData, error } = await appsUsersRoutersRegister({ body: data } as any);
+    const { data: resData, error } = await appsUsersRoutersRegister({
+      body: data,
+    } as any);
     if (!resData || error) {
-      const msg = (error as any)?.detail ?? 'Registration failed';
+      const msg = (error as any)?.detail ?? "Registration failed";
       throw new Error(msg);
     }
 
     storeTokens(resData.access_token, resData.refresh_token);
-
     setUser(resData.user);
     setCreatorProfile(resData.user.creator_profile ?? null);
+    setSessionExpired(false);
     setIsLoading(false);
 
-    router.push(`/@${resData.user.creator_profile?.handle ?? ''}`);
+    router.push(`/@${resData.user.creator_profile?.handle ?? ""}`);
   };
 
   // ── logout ─────────────────────────────────────────────────────────────
   const logout = async () => {
     try {
-      const refreshToken = Cookies.get('refresh_token');
+      const refreshToken = Cookies.get("refresh_token");
       if (refreshToken) {
-        await appsUsersRoutersLogout({ body: { refresh_token: refreshToken } } as any);
+        await appsUsersRoutersLogout({
+          body: { refresh_token: refreshToken },
+        } as any);
       }
     } finally {
       clearTokens();
       setUser(null);
       setCreatorProfile(null);
-      router.push('/login');
+      setSessionExpired(false);
+      router.push("/login");
     }
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      creatorProfile,
-      isAuthenticated: !!user,
-      isLoading,
-      login,
-      register,
-      logout,
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        creatorProfile,
+        isAuthenticated: !!user,
+        isLoading,
+        sessionExpired,
+        dismissSessionExpired: () => setSessionExpired(false),
+        login,
+        register,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -170,6 +225,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within an AuthProvider');
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };

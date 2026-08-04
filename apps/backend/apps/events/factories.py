@@ -1,7 +1,9 @@
 import factory
 from django.utils import timezone
-from apps.events.models import Event, Narrative, Evidence
+
+from apps.events.models import Event, Evidence, Narrative
 from apps.users.factories import UserFactory
+
 
 class EventFactory(factory.django.DjangoModelFactory):
     class Meta:

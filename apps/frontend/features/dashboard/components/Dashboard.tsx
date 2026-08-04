@@ -1,13 +1,17 @@
-'use client';
-import { useState, useEffect, useRef } from 'react';
-import { EventSummarySchema, appsEventsCreatorRoutersListCreatorEvents, appsEventsCreatorRoutersGetDraftsCount } from '@/generated';
-import EventRow from './EventRow';
-import LoadMoreButton from '@/shared/components/LoadMoreButton';
-import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
-import Link from 'next/link';
+"use client";
+import {
+  type EventSummarySchema,
+  appsEventsCreatorRoutersGetDraftsCount,
+  appsEventsCreatorRoutersListCreatorEvents,
+} from "@/generated";
+import LoadMoreButton from "@/shared/components/LoadMoreButton";
+import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import EventRow from "./EventRow";
 
 export default function Dashboard() {
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [events, setEvents] = useState<EventSummarySchema[]>([]);
 
   const [hasNext, setHasNext] = useState(false);
@@ -31,17 +35,18 @@ export default function Dashboard() {
     }
 
     try {
-      const { data: result, error } = await appsEventsCreatorRoutersListCreatorEvents({
-        query: {
-          status: status === 'all' ? undefined : status,
-          cursor: cursor || undefined,
-          limit: 20,
-        },
-      } as any);
+      const { data: result, error } =
+        await appsEventsCreatorRoutersListCreatorEvents({
+          query: {
+            status: status === "all" ? undefined : status,
+            cursor: cursor || undefined,
+            limit: 20,
+          },
+        } as any);
 
       if (error) {
         // Non-200 from API — don't throw, show inline message
-        const msg = (error as any)?.detail ?? 'Failed to load events.';
+        const msg = (error as any)?.detail ?? "Failed to load events.";
         setFetchError(msg);
         return;
       }
@@ -51,15 +56,17 @@ export default function Dashboard() {
         if (reset) {
           setEvents(items);
         } else {
-          setEvents(prev => [...prev, ...items]);
+          setEvents((prev) => [...prev, ...items]);
         }
         cursorRef.current = result.next_cursor ?? null;
         setHasNext(result.has_next ?? false);
       }
     } catch (e: any) {
       // Network error or non-JSON response — show inline, don't throw
-      console.error('[Dashboard] fetchEvents error:', e);
-      setFetchError('Could not connect to the server. Please check the backend is running.');
+      console.error("[Dashboard] fetchEvents error:", e);
+      setFetchError(
+        "Could not connect to the server. Please check the backend is running.",
+      );
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
@@ -94,7 +101,9 @@ export default function Dashboard() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">Creator Dashboard</h1>
-          <p className="text-zinc-500">Manage your investigations and events.</p>
+          <p className="text-zinc-500">
+            Manage your investigations and events.
+          </p>
         </div>
 
         <Link
@@ -106,7 +115,11 @@ export default function Dashboard() {
       </div>
 
       <div className="mb-6 flex items-center justify-between">
-        <Tabs defaultValue="all" value={statusFilter} onValueChange={setStatusFilter}>
+        <Tabs
+          defaultValue="all"
+          value={statusFilter}
+          onValueChange={setStatusFilter}
+        >
           <TabsList>
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="published">Published</TabsTrigger>
@@ -136,11 +149,11 @@ export default function Dashboard() {
           <div className="p-12 text-center flex flex-col items-center">
             <h3 className="text-xl font-semibold mb-2">No events found</h3>
             <p className="text-zinc-500 mb-6">
-              {statusFilter === 'all'
+              {statusFilter === "all"
                 ? "You haven't created any events yet."
                 : `You don't have any ${statusFilter} events.`}
             </p>
-            {statusFilter === 'all' && (
+            {statusFilter === "all" && (
               <Link
                 href="/editor/new"
                 className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
@@ -151,7 +164,7 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="flex flex-col">
-            {events.map(event => (
+            {events.map((event) => (
               <EventRow key={event.id} event={event} onUpdate={handleUpdate} />
             ))}
           </div>
@@ -160,7 +173,11 @@ export default function Dashboard() {
 
       {!isLoading && hasNext && (
         <div className="mt-6">
-          <LoadMoreButton hasNext={hasNext} isLoading={isLoadingMore} onClick={() => fetchEvents(false)} />
+          <LoadMoreButton
+            hasNext={hasNext}
+            isLoading={isLoadingMore}
+            onClick={() => fetchEvents(false)}
+          />
         </div>
       )}
     </div>

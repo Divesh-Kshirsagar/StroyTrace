@@ -1,5 +1,5 @@
-import { Card } from '@/shared/components/ui/card';
-import { Skeleton } from '@/shared/components/ui/skeleton';
+import { Card } from "@/shared/components/ui/card";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 
 export default function EventCardSkeleton() {
   return (
@@ -10,16 +10,16 @@ export default function EventCardSkeleton() {
           <Skeleton className="w-6 h-6 rounded-full" />
           <Skeleton className="h-4 w-24" />
         </div>
-        
+
         <Skeleton className="h-6 w-full mt-1" />
         <Skeleton className="h-6 w-3/4" />
-        
+
         <div className="space-y-2 mt-2">
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-2/3" />
         </div>
-        
+
         <div className="mt-auto pt-4 flex items-center justify-between">
           <div className="flex gap-2 items-center">
             <Skeleton className="h-5 w-16 rounded-full" />
