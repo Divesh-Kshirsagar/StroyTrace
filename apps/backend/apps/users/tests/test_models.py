@@ -1,5 +1,7 @@
 import pytest
-from apps.users.factories import UserFactory, CreatorProfileFactory
+
+from apps.users.factories import CreatorProfileFactory, UserFactory
+
 
 @pytest.mark.django_db
 def test_user_creation():

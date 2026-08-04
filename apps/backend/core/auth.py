@@ -1,8 +1,10 @@
-from ninja.security import HttpBearer
-from ninja.errors import HttpError
-from django.conf import settings
 import jwt
+from django.conf import settings
+from ninja.errors import HttpError
+from ninja.security import HttpBearer
+
 from apps.users.models import User
+
 
 class AuthBearer(HttpBearer):
     def authenticate(self, request, token):

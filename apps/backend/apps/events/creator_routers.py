@@ -1,10 +1,9 @@
-from typing import Optional, List
-from django.db.models import Count, Q
-from ninja import Router
+from ninja import Router, Schema
+
 from apps.feeds.schemas import PaginatedEventSummarySchema
-from .models import Event
 from core.pagination import paginate_queryset
-from ninja import Schema
+
+from .models import Event
 
 creator_events_router = Router(tags=["creator-events"])
 
@@ -12,7 +11,7 @@ class DraftsCountSchema(Schema):
     count: int
 
 @creator_events_router.get("", response=PaginatedEventSummarySchema)
-def list_creator_events(request, status: Optional[str] = None, cursor: Optional[str] = None, limit: int = 20):
+def list_creator_events(request, status: str | None = None, cursor: str | None = None, limit: int = 20):
     events = Event.objects.filter(lead_investigator=request.auth).select_related(
         'lead_investigator', 'lead_investigator__creator_profile'
     ).prefetch_related('topics', 'evidence_set')

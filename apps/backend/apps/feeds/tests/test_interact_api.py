@@ -6,16 +6,15 @@ and the transparency endpoint.
 """
 from __future__ import annotations
 
-import pytest
-from datetime import datetime, timedelta, timezone as dt_timezone
-from django.conf import settings
-from django.test import Client
+from datetime import UTC, datetime, timedelta
+
 import jwt
+import pytest
+from django.conf import settings
 
 from apps.events.factories import EventFactory
 from apps.feeds.models import Interaction
-from apps.users.factories import UserFactory, CreatorProfileFactory
-
+from apps.users.factories import CreatorProfileFactory, UserFactory
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -34,8 +33,8 @@ def _jwt_headers(user) -> dict:
     """Generate a Bearer token directly (avoids hitting the rate-limited login endpoint)."""
     payload = {
         "user_id": str(user.id),
-        "exp": datetime.now(dt_timezone.utc) + timedelta(minutes=15),
-        "iat": datetime.now(dt_timezone.utc),
+        "exp": datetime.now(UTC) + timedelta(minutes=15),
+        "iat": datetime.now(UTC),
         "type": "access",
     }
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")

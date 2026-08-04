@@ -7,14 +7,12 @@ no moderation flags, complete profile) and the qualitative factor output.
 from __future__ import annotations
 
 from datetime import timedelta
-from unittest.mock import patch, PropertyMock
 
 import pytest
 from django.utils import timezone
 
 from apps.feeds.services.confidence import EngagementConfidenceService
 from apps.users.factories import UserFactory
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -85,6 +83,7 @@ def test_email_verified_adds_weight():
 @pytest.mark.django_db
 def test_complete_profile_adds_weight():
     from django.conf import settings
+
     from apps.users.factories import CreatorProfileFactory
 
     user = _user_aged(30)

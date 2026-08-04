@@ -13,19 +13,15 @@ Coverage
 - Valid PDF → processed, file present in production bucket
 """
 
-import io
-import struct
 import uuid
 from unittest.mock import MagicMock, patch
 
-import pytest
 import boto3
+import pytest
 from moto import mock_aws
 
-from apps.events.factories import EvidenceFactory, EventFactory
-from apps.events.models import Evidence
+from apps.events.factories import EventFactory, EvidenceFactory
 from apps.users.factories import CreatorProfileFactory
-
 
 # ---------------------------------------------------------------------------
 # Constants / fixtures
@@ -163,9 +159,8 @@ def test_valid_jpeg_produces_webp_and_processed_status():
 
     mock_pyvips = _make_pyvips_module()
 
-    with patch.dict("sys.modules", {"pyvips": mock_pyvips}):
-        with patch("core.storage._get_r2_client", return_value=_get_mock_s3()):
-            _run_task(str(evidence.id))
+    with patch.dict("sys.modules", {"pyvips": mock_pyvips}), patch("core.storage._get_r2_client", return_value=_get_mock_s3()):
+        _run_task(str(evidence.id))
 
     evidence.refresh_from_db()
     assert evidence.upload_status == "processed"
@@ -262,9 +257,8 @@ def test_jpeg_with_gps_exif_strips_metadata():
     mock_pyvips = MagicMock()
     mock_pyvips.Image.new_from_buffer.return_value = GPSImageMock()
 
-    with patch.dict("sys.modules", {"pyvips": mock_pyvips}):
-        with patch("core.storage._get_r2_client", return_value=_get_mock_s3()):
-            _run_task(str(evidence.id))
+    with patch.dict("sys.modules", {"pyvips": mock_pyvips}), patch("core.storage._get_r2_client", return_value=_get_mock_s3()):
+        _run_task(str(evidence.id))
 
     # pyvips must have been called with strip=True
     assert len(write_to_buffer_calls) == 1, "write_to_buffer must be called exactly once"

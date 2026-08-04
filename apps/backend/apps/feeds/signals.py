@@ -27,5 +27,6 @@ def interaction_changed(sender: type, instance: Interaction, **kwargs: object) -
         # Graceful fallback: compute synchronously
         try:
             TrendingScoreService.update_event_score(instance.event)
-        except Exception:
-            pass  # Never crash the request thread over a ranking update
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning("Ranking update failed: %s", e)

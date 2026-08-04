@@ -1,7 +1,7 @@
 import base64
 from datetime import datetime
-from typing import Optional, Tuple
-from django.db.models import QuerySet, Q
+
+from django.db.models import Q, QuerySet
 
 
 def encode_cursor(value: str, pk: str) -> str:
@@ -10,7 +10,7 @@ def encode_cursor(value: str, pk: str) -> str:
     return base64.b64encode(cursor_str.encode('utf-8')).decode('utf-8')
 
 
-def decode_cursor(cursor: str) -> Tuple[Optional[str], Optional[str]]:
+def decode_cursor(cursor: str) -> tuple[str | None, str | None]:
     try:
         decoded = base64.b64decode(cursor.encode('utf-8')).decode('utf-8')
         value, pk = decoded.split('|', 1)
@@ -21,7 +21,7 @@ def decode_cursor(cursor: str) -> Tuple[Optional[str], Optional[str]]:
 
 def paginate_queryset(
     qs: QuerySet,
-    cursor: Optional[str],
+    cursor: str | None,
     limit: int = 20,
     sort: str = "latest",
 ) -> dict:

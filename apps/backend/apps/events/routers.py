@@ -1,5 +1,6 @@
 import uuid
 
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -9,12 +10,9 @@ from ninja.errors import HttpError
 
 from apps.topics.models import Topic
 from core.auth import AuthBearer, OptionalAuthBearer
-
-from .models import Event, Evidence, Narrative
-from django.conf import settings
-
 from core.storage import _get_r2_client
 
+from .models import Event, Evidence, Narrative
 from .schemas import (
     EventCreateSchema,
     EventFullSchema,
@@ -91,10 +89,8 @@ def search_events(request, q: str = "", topic: str = "", status: str = "publishe
 def get_event(request, slug: str):
     event = get_event_or_404(slug)
     narrative = getattr(event, 'narrative', None)
-    if narrative and not narrative.is_published:
-        # request.auth is None for anonymous; only show unpublished narrative to owner
-        if request.auth is None or event.lead_investigator != request.auth:
-            narrative = None
+    if narrative and not narrative.is_published and (request.auth is None or event.lead_investigator != request.auth):
+        narrative = None
             
     return {
         "event": event,
@@ -137,9 +133,8 @@ def update_narrative(request, slug: str, data: NarrativeCreateUpdateSchema):
 def get_narrative(request, slug: str):
     event = get_event_or_404(slug)
     narrative = get_object_or_404(Narrative, event=event)
-    if not narrative.is_published:
-        if not hasattr(request, 'user') or event.lead_investigator != request.user:
-            raise HttpError(403, "Narrative is not published")
+    if not narrative.is_published and (not hasattr(request, 'user') or event.lead_investigator != request.user):
+        raise HttpError(403, "Narrative is not published")
     return narrative
 
 @events_router.get("/{slug}/evidence/upload-url", response=UploadUrlSchema, auth=_auth)
@@ -203,7 +198,7 @@ def confirm_evidence_upload(request, slug: str, evidence_id: uuid.UUID):
     evidence.save(update_fields=["upload_status"])
 
     # Lazy import to avoid circular dependency between routers ↔ tasks
-    from apps.events.tasks import validate_and_process_evidence  # noqa: PLC0415
+    from apps.events.tasks import validate_and_process_evidence
     validate_and_process_evidence.delay(str(evidence.id))
 
     return evidence

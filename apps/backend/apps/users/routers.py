@@ -1,20 +1,28 @@
+from datetime import UTC, datetime, timedelta
+
+import jwt
+from django.conf import settings
+from django.contrib.auth import authenticate
+from django_ratelimit.decorators import ratelimit
 from ninja import Router
 from ninja.errors import HttpError
-from django.contrib.auth import authenticate
-from django.conf import settings
-from datetime import datetime, timedelta, timezone
-import jwt
-from django_ratelimit.decorators import ratelimit
 
-from .models import User, CreatorProfile
-from .schemas import (
-    RegisterRequest, AuthResponse, LoginRequest, LogoutRequest, 
-    RefreshRequest, RefreshResponse, MessageResponse, UserSchema,
-    TopicCurationSchema
-)
-from apps.topics.schemas import TopicSchema
 from apps.topics.models import Topic
+from apps.topics.schemas import TopicSchema
 from core.auth import AuthBearer
+
+from .models import CreatorProfile, User
+from .schemas import (
+    AuthResponse,
+    LoginRequest,
+    LogoutRequest,
+    MessageResponse,
+    RefreshRequest,
+    RefreshResponse,
+    RegisterRequest,
+    TopicCurationSchema,
+    UserSchema,
+)
 
 auth_router = Router(tags=["auth"])
 channels_router = Router(tags=["channels"])
@@ -22,8 +30,8 @@ channels_router = Router(tags=["channels"])
 def create_access_token(user_id: str) -> str:
     payload = {
         "user_id": user_id,
-        "exp": datetime.now(timezone.utc) + timedelta(minutes=getattr(settings, 'ACCESS_TOKEN_EXPIRE_MINUTES', 15)),
-        "iat": datetime.now(timezone.utc),
+        "exp": datetime.now(UTC) + timedelta(minutes=getattr(settings, 'ACCESS_TOKEN_EXPIRE_MINUTES', 15)),
+        "iat": datetime.now(UTC),
         "type": "access"
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
@@ -31,8 +39,8 @@ def create_access_token(user_id: str) -> str:
 def create_refresh_token(user_id: str) -> str:
     payload = {
         "user_id": user_id,
-        "exp": datetime.now(timezone.utc) + timedelta(days=getattr(settings, 'REFRESH_TOKEN_EXPIRE_DAYS', 7)),
-        "iat": datetime.now(timezone.utc),
+        "exp": datetime.now(UTC) + timedelta(days=getattr(settings, 'REFRESH_TOKEN_EXPIRE_DAYS', 7)),
+        "iat": datetime.now(UTC),
         "type": "refresh"
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
@@ -75,7 +83,7 @@ def login(request, payload: LoginRequest):
     if not user:
         raise HttpError(401, "Invalid credentials")
     
-    user.last_login = datetime.now(timezone.utc)
+    user.last_login = datetime.now(UTC)
     user.save(update_fields=['last_login'])
     return AuthResponse(
         user=user,
@@ -113,7 +121,9 @@ def my_channel(request):
     return request.auth
 
 from django.shortcuts import get_object_or_404
+
 from .schemas import CreatorProfileSchema
+
 
 @channels_router.get("/{handle}", response=CreatorProfileSchema, auth=None)
 def get_channel(request, handle: str):
@@ -131,9 +141,9 @@ def get_channel(request, handle: str):
     }
     return profile_dict
 
-from typing import List
 
-@channels_router.get("/me/topics", response=List[TopicSchema], auth=AuthBearer())
+
+@channels_router.get("/me/topics", response=list[TopicSchema], auth=AuthBearer())
 def get_my_topics(request):
     profile = request.auth.creator_profile
     return list(profile.topics.all())

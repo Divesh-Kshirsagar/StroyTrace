@@ -1,5 +1,7 @@
 import factory
+
 from apps.topics.models import Topic
+
 
 class TopicFactory(factory.django.DjangoModelFactory):
     class Meta:

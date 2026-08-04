@@ -6,18 +6,15 @@ Verifies time decay math, interaction weight application, and score persistence.
 from __future__ import annotations
 
 import math
-from datetime import timedelta
 
 import pytest
 from django.conf import settings
-from django.utils import timezone
 
 from apps.events.factories import EventFactory
 from apps.feeds.factories import InteractionFactory
 from apps.feeds.models import Interaction
 from apps.feeds.services.scoring import TrendingScoreService
 from apps.users.factories import UserFactory
-
 
 # ---------------------------------------------------------------------------
 # Time decay

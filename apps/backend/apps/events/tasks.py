@@ -25,7 +25,6 @@ Security notes
 import io
 import logging
 import os
-import uuid as _uuid
 
 import magic
 from celery import shared_task
@@ -63,7 +62,6 @@ def validate_and_process_evidence(self, evidence_id: str) -> None:
         String UUID of the ``Evidence`` record to process.
     """
     from apps.events.models import Evidence  # local import to avoid circular
-
     from core.storage import _get_r2_client
 
     try:

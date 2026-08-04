@@ -11,13 +11,12 @@ Acceptance criteria
 - content-length-range max is exactly 5 MB (5,242,880 bytes).
 """
 
+import boto3
 import pytest
 from moto import mock_aws
-import boto3
 
 from apps.events.factories import EventFactory
 from apps.users.factories import CreatorProfileFactory, UserFactory
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -131,12 +130,11 @@ def test_upload_url_content_length_range_max_is_5mb(api_client):
     The presigned POST conditions must cap uploads at exactly 5 MB
     (5,242,880 bytes) — R1.5.
     """
-    from unittest.mock import patch, MagicMock
+    from unittest.mock import MagicMock, patch
 
     # We need to intercept what is passed to generate_presigned_post
     captured_conditions = []
 
-    original_get_r2 = None
 
     def mock_get_r2_client():
         mock_client = MagicMock()

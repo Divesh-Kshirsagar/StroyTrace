@@ -3,9 +3,8 @@ Django settings for core project.
 Reads secrets from environment variables (or .env via python-decouple).
 """
 
-from pathlib import Path
-from datetime import timedelta
 import os
+from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

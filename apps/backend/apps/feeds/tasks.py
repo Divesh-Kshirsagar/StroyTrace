@@ -31,9 +31,8 @@ def update_event_trending_score_sync(event_id: str) -> None:
         TrendingScoreService.update_event_score(event)
     except Event.DoesNotExist:
         logger.warning("update_event_trending_score: event %s not found", event_id)
-    except Exception as exc:
+    except Exception:
         logger.exception(
-            "update_event_trending_score: unexpected error for event %s: %s",
+            "update_event_trending_score: unexpected error for event %s",
             event_id,
-            exc,
         )

@@ -8,14 +8,12 @@ Acceptance criteria
 - Second call returns 404 (status is no longer 'pending_upload').
 """
 
-import uuid
 from unittest.mock import patch
 
 import pytest
 
-from apps.events.factories import EvidenceFactory, EventFactory
+from apps.events.factories import EventFactory, EvidenceFactory
 from apps.users.factories import CreatorProfileFactory
-
 
 # ---------------------------------------------------------------------------
 # Helpers

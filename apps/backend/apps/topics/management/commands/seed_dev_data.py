@@ -34,19 +34,17 @@ sort orders produce visibly different results:
 """
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import timedelta
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
-from django.utils.text import slugify
 
 from apps.events.models import Event, Evidence, Narrative
 from apps.feeds.models import Interaction
 from apps.feeds.services.scoring import TrendingScoreService
 from apps.topics.models import Topic
 from apps.users.models import CreatorProfile, User
-
 
 # ---------------------------------------------------------------------------
 # Seed data definitions
@@ -111,7 +109,7 @@ EVENTS = [
         ),
         "creator": "alice",
         "status": "published",
-        "start_date": date.today() - timedelta(days=5),
+        "start_date": timezone.now().date() - timedelta(days=5),
         "age_hours": 3,  # published 3 hours ago
         "topics": ["technology", "human-rights"],
         "narrative": (
@@ -159,7 +157,7 @@ EVENTS = [
         ),
         "creator": "alice",
         "status": "published",
-        "start_date": date.today() - timedelta(days=2),
+        "start_date": timezone.now().date() - timedelta(days=2),
         "age_hours": 1,
         "topics": ["technology", "corporate"],
         "narrative": (
@@ -194,7 +192,7 @@ EVENTS = [
         ),
         "creator": "bob",
         "status": "published",
-        "start_date": date.today() - timedelta(days=10),
+        "start_date": timezone.now().date() - timedelta(days=10),
         "age_hours": 6,
         "topics": ["environment", "corporate"],
         "narrative": (
@@ -238,7 +236,7 @@ EVENTS = [
         ),
         "creator": "carol",
         "status": "published",
-        "start_date": date.today() - timedelta(days=1),
+        "start_date": timezone.now().date() - timedelta(days=1),
         "age_hours": 0.5,
         "topics": ["health", "corporate"],
         "narrative": (
@@ -270,7 +268,7 @@ EVENTS = [
         ),
         "creator": "alice",
         "status": "published",
-        "start_date": date.today() - timedelta(days=30),
+        "start_date": timezone.now().date() - timedelta(days=30),
         "age_hours": 72,
         "topics": ["politics", "corporate"],
         "narrative": (
@@ -311,7 +309,7 @@ EVENTS = [
         "summary": "Ongoing investigation — not yet ready for publication.",
         "creator": "alice",
         "status": "draft",
-        "start_date": date.today(),
+        "start_date": timezone.now().date(),
         "age_hours": 0,
         "topics": ["media"],
         "narrative": "<p>Work in progress.</p>",

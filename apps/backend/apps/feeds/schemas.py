@@ -1,13 +1,13 @@
-from typing import List, Optional, Any
-from pydantic import Field
-from ninja import Schema
 from datetime import date, datetime
 from uuid import UUID
+
+from ninja import Schema
+
 
 class CreatorSummarySchema(Schema):
     handle: str
     display_name: str
-    avatar_url: Optional[str] = None
+    avatar_url: str | None = None
 
 class TopicSummarySchema(Schema):
     slug: str
@@ -17,13 +17,13 @@ class EventSummarySchema(Schema):
     id: UUID
     slug: str
     title: str
-    summary: Optional[str] = None
+    summary: str | None = None
     start_date: date
     status: str
     lead_investigator: CreatorSummarySchema
-    primary_topic: Optional[TopicSummarySchema] = None
+    primary_topic: TopicSummarySchema | None = None
     evidence_count: int
-    primary_thumbnail: Optional[str] = None
+    primary_thumbnail: str | None = None
     created_at: datetime
     upvote_count: int
     viewer_has_upvoted: bool
@@ -76,9 +76,9 @@ class EventSummarySchema(Schema):
         ).exists()
 
 class PaginatedEventSummarySchema(Schema):
-    items: List[EventSummarySchema]
-    next_cursor: Optional[str] = None
-    previous_cursor: Optional[str] = None
+    items: list[EventSummarySchema]
+    next_cursor: str | None = None
+    previous_cursor: str | None = None
     has_next: bool
 
 
@@ -113,5 +113,5 @@ class EventTransparencyResponse(Schema):
     comment_count: int
     share_count: int
     viewer_has_upvoted: bool
-    viewer_factors: List[TransparencyFactor]
-    event_factors: List[TransparencyFactor]
+    viewer_factors: list[TransparencyFactor]
+    event_factors: list[TransparencyFactor]

@@ -193,7 +193,7 @@ class Command(BaseCommand):
                 try:
                     start_date = date.fromisoformat(start_date_raw)
                 except ValueError:
-                    start_date = date.today()
+                    start_date = timezone.now().date()
 
                 try:
                     age_hours = float(age_hours_raw)

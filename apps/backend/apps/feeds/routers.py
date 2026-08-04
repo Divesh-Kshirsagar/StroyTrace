@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from django.db import IntegrityError
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
@@ -106,7 +104,7 @@ def _event_transparency_factors(event: Event) -> list[dict]:
 def home_feed(
     request,
     sort: str = "trending",
-    cursor: Optional[str] = None,
+    cursor: str | None = None,
     limit: int = 20,
 ):
     """
@@ -121,7 +119,7 @@ def home_feed(
 
 
 @feeds_router.get("/topic/{slug}", response=PaginatedEventSummarySchema, auth=None)
-def topic_feed(request, slug: str, cursor: Optional[str] = None, limit: int = 20):
+def topic_feed(request, slug: str, cursor: str | None = None, limit: int = 20):
     viewer = OptionalAuthBearer()(request)
     qs = _base_qs().filter(topics__slug=slug)
     result = paginate_queryset(qs, cursor, limit, sort="trending")
@@ -131,7 +129,7 @@ def topic_feed(request, slug: str, cursor: Optional[str] = None, limit: int = 20
 
 @feeds_router.get("/channel/{handle}", response=PaginatedEventSummarySchema, auth=None)
 def channel_feed(
-    request, handle: str, cursor: Optional[str] = None, limit: int = 20
+    request, handle: str, cursor: str | None = None, limit: int = 20
 ):
     viewer = OptionalAuthBearer()(request)
     qs = _base_qs().filter(lead_investigator__creator_profile__handle=handle)
@@ -216,7 +214,7 @@ def create_interaction(request, slug: str, payload: InteractRequest):
     event = get_object_or_404(Event, slug=slug)
 
     try:
-        interaction, created = Interaction.objects.get_or_create(
+        _interaction, created = Interaction.objects.get_or_create(
             user=request.auth,
             event=event,
             interaction_type=payload.type,
