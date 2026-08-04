@@ -21,3 +21,8 @@ app = Celery("config")
 # object to child processes. `namespace='CELERY'` means all Celery-related
 # configuration keys in Django settings must start with `CELERY_`.
 app.config_from_object("django.conf:settings", namespace="CELERY")
+
+# Automatically discover tasks in all apps listed in INSTALLED_APPS.
+# Added in Task 5.3 once the task modules exist.
+app.autodiscover_tasks()
+

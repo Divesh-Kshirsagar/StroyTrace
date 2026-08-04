@@ -3,7 +3,7 @@ import { useEditor } from '../context/EditorContext';
 import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { useState } from 'react';
-import AddEvidenceModal from './AddEvidenceModal';
+import EvidenceUploader from './EvidenceUploader';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -115,7 +115,7 @@ export default function EvidenceBoardPanel() {
         )}
       </div>
 
-      <AddEvidenceModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <EvidenceUploader isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </Card>
   );
 }

@@ -88,3 +88,8 @@ class EvidenceReorderSchema(Schema):
 
 class MessageSchema(Schema):
     message: str
+
+class UploadUrlSchema(Schema):
+    evidence_id: str
+    upload_url: str
+    fields: dict

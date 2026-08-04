@@ -452,3 +452,30 @@
   - Using `str` rather than a `Literal[...]` union type is intentional: it keeps the schema open for future `upload_status` values without requiring a schema migration, and it matches the approach used for `media_type` and `status` elsewhere in the schema file.
   - The default `'url_based'` means Ninja's ORM serialization (`from_orm=True`) reads the real DB value for records that have the field, while still being safe for in-memory schema construction without a full ORM object.
 - **Result Status:** 40/40 backend tests pass. Committed as `a57b05f` on `feature/secure-evidence-upload`.
+
+## [2026-08-04 12:07] - Commit: 9ad81ed - Task: Secure Evidence Upload — Tests, EvidenceUploader UI, EvidenceBoard Status States
+
+- **Objective:** Complete all remaining tasks for the secure-evidence-upload feature spec: Celery task tests (6.3), Uppy frontend upload component (7.1–7.3), EvidenceBoard upload_status UI (8), and frontend tests (9.1–9.2).
+- **Assumptions Declared:**
+  - `pyvips` is not installed in the dev environment; all tests that exercise the validation task mock it via `patch.dict("sys.modules", {"pyvips": mock_pyvips})`.
+  - `@uppy/aws-s3` v4 requires `shouldUseMultipart: false` to use single-part presigned POST mode (not multipart). The TypeScript interface required `as any` cast because the union type inference in v4 defaults to multipart.
+  - JWT tokens in tests must include `"type": "access"` claim — `AuthBearer.authenticate()` validates this and returns 401 if absent. Previous test files were missing this claim.
+  - `EvidenceSchema` in `generated/types.gen.ts` is a committed artifact (not regenerated from a live server); updated manually to add `upload_status?: string`.
+- **Modifications Matrix:**
+  - `apps/backend/apps/events/tests/test_tasks.py` — Created. 4 tests: valid JPEG→WebP+CDN URL, PHP disguised as JPEG rejected, GPS EXIF stripped (write_to_buffer called with strip=True), valid PDF copied to production bucket.
+  - `apps/backend/apps/events/tests/test_confirm_upload.py` — Fixed JWT `"type": "access"` payload.
+  - `apps/backend/apps/events/tests/test_upload_url.py` — Fixed JWT payload + patch target from `core.storage._get_r2_client` to `apps.events.routers._get_r2_client`.
+  - `apps/frontend/package.json` — Added `@uppy/core`, `@uppy/aws-s3`, `@uppy/react`, `@uppy/dashboard`.
+  - `apps/frontend/pnpm-lock.yaml` — Lockfile updated by `pnpm install`.
+  - `apps/frontend/features/events/components/EvidenceUploader.tsx` — Created. Two-tab modal: "Add by URL" (migrated from AddEvidenceModal) + "Upload File" (Uppy Dashboard with AwsS3 plugin calling presigned URL endpoint). Uppy restrictions: 5 MB max, JPEG/PNG/WebP/PDF only.
+  - `apps/frontend/features/events/components/EvidenceBoardPanel.tsx` — Swapped `AddEvidenceModal` import + JSX usage with `EvidenceUploader`.
+  - `apps/frontend/features/events/components/EvidenceBoard.tsx` — Rewrote with upload_status-aware card states: processing spinner (no img/link), failed error state with remove button, processed full preview. Added publicView filtering and 3-second polling hook.
+  - `apps/frontend/generated/types.gen.ts` — Added `upload_status?: string` to `EvidenceSchema`.
+  - `apps/frontend/features/events/components/__tests__/EvidenceUploader.test.tsx` — Created. 8 tests covering modal visibility, tabs, restrictions config, upload-url API call, URL-form-no-fetch.
+  - `apps/frontend/features/events/components/__tests__/EvidenceBoard.test.tsx` — Created. 7 tests covering processing/failed/processed states, public view filtering, empty state.
+- **Decision Logic:**
+  - Chose `as any` cast for AwsS3 v4 plugin options because the TypeScript union type tries to resolve to the multipart interface (which requires `createMultipartUpload`, etc.) and the non-multipart discriminated union requires `shouldUseMultipart: false` as a discriminant — but the inference doesn't propagate through `.use()` generic. Using `as any` with explicit `shouldUseMultipart: false` in the runtime object is correct behavior; the TypeScript types are overly strict in v4 for this configuration.
+  - Chose vitest module mocks with a function constructor pattern (not `vi.fn().mockImplementation(() => ...)`) because Uppy is called with `new` and Vitest v4 doesn't allow `mockReturnValue` on `new` calls.
+  - JWT fix: `AuthBearer.authenticate()` validates `decoded.get("type") != "access"` and returns 401 if the claim is wrong. All test helpers were generating tokens without this claim.
+  - Patch target fix: when `test_upload_url.py` patches `core.storage._get_r2_client`, it doesn't affect the already-imported reference in `apps.events.routers`. Patching `apps.events.routers._get_r2_client` replaces the binding in the module's namespace.
+- **Result Status:** Backend 51/51 pass. Frontend 16/16 pass. TypeScript typecheck clean. Committed as `9ad81ed` on `feature/secure-evidence-upload`.

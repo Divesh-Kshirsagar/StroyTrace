@@ -414,10 +414,15 @@ export type EvidenceSchema = {
      */
     display_order: number;
     /**
+     * Upload Status
+     */
+    upload_status?: string;
+    /**
      * Created At
      */
     created_at: string;
 };
+
 
 /**
  * NarrativeSchema
