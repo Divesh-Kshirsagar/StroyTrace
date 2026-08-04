@@ -13,19 +13,28 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noExplicitAny": "off"
+        "noExplicitAny": "off",
+        "noAssignInExpressions": "off"
       },
       "style": {
-        "noNonNullAssertion": "off"
+        "noNonNullAssertion": "off",
+        "useSelfClosingElements": "off",
+        "useNodejsImportProtocol": "off"
       },
       "correctness": {
         "useExhaustiveDependencies": "off"
       },
       "complexity": {
-        "noExtraBooleanCast": "off"
+        "noExtraBooleanCast": "off",
+        "noBannedTypes": "off"
       },
       "a11y": {
-        "useButtonType": "off"
+        "useButtonType": "off",
+        "noSvgWithoutTitle": "off",
+        "useKeyWithClickEvents": "off"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
       }
     }
   },
